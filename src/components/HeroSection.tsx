@@ -8,7 +8,7 @@ const HeroSection = () => {
   const [selectedPackage, setSelectedPackage] = useState('umrah');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedGuests, setSelectedGuests] = useState(2);
-  const [isSubscribed, setIsSubscribed] = useState(false); // Demo state
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   const packages = [
     {
@@ -24,58 +24,80 @@ const HeroSection = () => {
     {
       id: 'hajj',
       name: 'Hajj Package',
-      price: '$3,499',
+      price: 'Contact Agent',
       duration: '14 Days',
       rating: 4.9,
       features: ['Complete Hajj Support', 'Premium Hotels', 'Group Guide', 'All Meals'],
       available: isSubscribed,
-      description: 'Exclusive Hajj package for subscribed agents only',
+      description: 'Exclusive Hajj package - Contact subscribed agents for pricing',
       premium: true
     }
   ];
 
   const handleBooking = () => {
     if (selectedPackage === 'hajj' && !isSubscribed) {
-      alert('Hajj packages are only available for subscribed agents. Please subscribe to access premium packages.');
+      alert('Hajj packages are only available through subscribed agents. Browse our marketplace to find certified agents.');
       return;
     }
     console.log('Booking package:', selectedPackage);
   };
 
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-emerald-50 via-white to-yellow-50 islamic-pattern overflow-hidden">
+    <section className="relative min-h-screen overflow-hidden">
+      {/* Hero Background with Hajj/Umrah Images */}
+      <div className="absolute inset-0">
+        <div className="grid grid-cols-2 h-full">
+          <div className="relative">
+            <img 
+              src="https://images.unsplash.com/photo-1466442929976-97f336a657be?auto=format&fit=crop&w=800&q=80" 
+              alt="Beautiful mosque architecture"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/80 to-transparent"></div>
+          </div>
+          <div className="relative">
+            <img 
+              src="https://images.unsplash.com/photo-1492321936769-b49830bc1d1e?auto=format&fit=crop&w=800&q=80" 
+              alt="Islamic architecture under stars"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-l from-yellow-900/80 to-transparent"></div>
+          </div>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40"></div>
+      </div>
+
       {/* Enhanced Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-emerald-300 to-emerald-400 rounded-full opacity-20 animate-float blur-sm"></div>
         <div className="absolute bottom-20 right-10 w-24 h-24 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-full opacity-20 animate-float blur-sm" style={{animationDelay: '1s'}}></div>
         <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-gradient-to-br from-blue-300 to-blue-400 rounded-full opacity-20 animate-float blur-sm" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/3 right-1/3 w-20 h-20 bg-gradient-to-br from-purple-300 to-pink-400 rounded-full opacity-15 animate-float blur-sm" style={{animationDelay: '3s'}}></div>
       </div>
 
-      <div className="relative container mx-auto px-4 py-12 lg:py-20">
+      <div className="relative container mx-auto px-4 py-12 lg:py-20 z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Enhanced Left Column */}
           <div className="space-y-8">
             <div className="space-y-6">
               <div className="flex flex-wrap gap-3">
-                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-800 px-4 py-2 rounded-full text-sm font-medium shadow-lg">
+                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-800 px-4 py-2 rounded-full text-sm font-medium shadow-lg backdrop-blur-sm">
                   <Star className="w-4 h-4" />
                   <span>Trusted by 50,000+ Pilgrims</span>
                 </div>
-                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 px-4 py-2 rounded-full text-sm font-medium shadow-lg">
+                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 px-4 py-2 rounded-full text-sm font-medium shadow-lg backdrop-blur-sm">
                   <Award className="w-4 h-4" />
                   <span>Premium Experience</span>
                 </div>
               </div>
               
-              <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight">
+              <h1 className="text-4xl lg:text-6xl font-bold text-white leading-tight drop-shadow-2xl">
                 Your Sacred Journey
-                <span className="block bg-gradient-islamic bg-clip-text text-transparent">
+                <span className="block bg-gradient-to-r from-emerald-400 to-yellow-400 bg-clip-text text-transparent">
                   Begins Here
                 </span>
               </h1>
               
-              <p className="text-xl text-gray-600 leading-relaxed max-w-2xl">
+              <p className="text-xl text-white/90 leading-relaxed max-w-2xl drop-shadow-lg">
                 Connect with certified Hajj & Umrah agents, join our vibrant Muslim community, 
                 and embark on your spiritual journey with complete peace of mind and premium service.
               </p>
@@ -83,21 +105,21 @@ const HeroSection = () => {
 
             {/* Enhanced Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="text-center p-4 bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg">
-                <div className="text-2xl font-bold text-emerald-600 mb-1">2M+</div>
-                <div className="text-sm text-gray-600">Happy Pilgrims</div>
+              <div className="text-center p-4 bg-white/20 backdrop-blur-md rounded-2xl shadow-lg border border-white/20">
+                <div className="text-2xl font-bold text-white mb-1">2M+</div>
+                <div className="text-sm text-white/80">Happy Pilgrims</div>
               </div>
-              <div className="text-center p-4 bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg">
-                <div className="text-2xl font-bold text-emerald-600 mb-1">500+</div>
-                <div className="text-sm text-gray-600">Certified Agents</div>
+              <div className="text-center p-4 bg-white/20 backdrop-blur-md rounded-2xl shadow-lg border border-white/20">
+                <div className="text-2xl font-bold text-white mb-1">500+</div>
+                <div className="text-sm text-white/80">Certified Agents</div>
               </div>
-              <div className="text-center p-4 bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg">
-                <div className="text-2xl font-bold text-emerald-600 mb-1">4.9★</div>
-                <div className="text-sm text-gray-600">Average Rating</div>
+              <div className="text-center p-4 bg-white/20 backdrop-blur-md rounded-2xl shadow-lg border border-white/20">
+                <div className="text-2xl font-bold text-white mb-1">4.9★</div>
+                <div className="text-sm text-white/80">Average Rating</div>
               </div>
-              <div className="text-center p-4 bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg">
-                <div className="text-2xl font-bold text-emerald-600 mb-1">24/7</div>
-                <div className="text-sm text-gray-600">Support</div>
+              <div className="text-center p-4 bg-white/20 backdrop-blur-md rounded-2xl shadow-lg border border-white/20">
+                <div className="text-2xl font-bold text-white mb-1">24/7</div>
+                <div className="text-sm text-white/80">Support</div>
               </div>
             </div>
 
@@ -112,10 +134,10 @@ const HeroSection = () => {
               </Button>
               <Button 
                 variant="outline" 
-                className="border-2 border-emerald-300 bg-white/80 backdrop-blur-sm text-emerald-700 hover:bg-emerald-50 px-8 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                className="border-2 border-white/50 bg-white/20 backdrop-blur-md text-white hover:bg-white/30 px-8 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
               >
                 <Users className="w-5 h-5 mr-2" />
-                Join Community
+                Browse Marketplace
               </Button>
             </div>
           </div>
@@ -183,7 +205,7 @@ const HeroSection = () => {
                     </div>
                   </div>
 
-                  {/* Enhanced Form Fields */}
+                  {/* Form Fields */}
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-gray-700">Travel Date</label>
@@ -221,7 +243,7 @@ const HeroSection = () => {
                     className="w-full bg-gradient-islamic hover:opacity-90 text-white py-6 text-lg font-semibold rounded-xl transition-all transform hover:scale-105 shadow-lg"
                   >
                     <Plane className="w-5 h-5 mr-2" />
-                    {selectedPackage === 'hajj' && !isSubscribed ? 'Subscribe to Book Hajj' : 'Search Packages'}
+                    {selectedPackage === 'hajj' && !isSubscribed ? 'Find Hajj Agents' : 'Search Packages'}
                   </Button>
 
                   {/* Subscription Notice */}
@@ -229,10 +251,10 @@ const HeroSection = () => {
                     <div className="p-4 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl border border-purple-200">
                       <div className="flex items-center space-x-2 text-purple-800">
                         <Shield className="w-5 h-5" />
-                        <span className="font-medium">Premium Access Required</span>
+                        <span className="font-medium">Contact Certified Agents</span>
                       </div>
                       <p className="text-sm text-purple-700 mt-1">
-                        Hajj packages are exclusively available for subscribed agents. Join our premium service to access all features.
+                        Hajj packages are available through our certified agents. Browse our marketplace to find the perfect package for you.
                       </p>
                     </div>
                   )}

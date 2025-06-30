@@ -3,7 +3,9 @@ import React from 'react';
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
 import FeaturesSection from '@/components/FeaturesSection';
+import Marketplace from '@/components/Marketplace';
 import CommunitySection from '@/components/CommunitySection';
+import Blog from '@/components/Blog';
 import AgentSubscription from '@/components/AgentSubscription';
 
 const Index = () => {
@@ -12,16 +14,28 @@ const Index = () => {
       <Header />
       <HeroSection />
       <FeaturesSection />
+      <Marketplace />
       <CommunitySection />
+      <Blog />
       <AgentSubscription />
       
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
-        <div className="container mx-auto px-4">
+      {/* Enhanced Footer with Hajj/Umrah imagery */}
+      <footer className="relative bg-gray-900 text-white py-16 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 opacity-20">
+          <img 
+            src="https://images.unsplash.com/photo-1466442929976-97f336a657be?auto=format&fit=crop&w=1200&q=80" 
+            alt="Mosque architecture"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-gray-900/60"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-4 gap-8">
             <div className="lg:col-span-2">
               <div className="flex items-center space-x-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-islamic rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-islamic rounded-full flex items-center justify-center shadow-xl">
                   <span className="text-white font-bold text-xl">حج</span>
                 </div>
                 <div>
@@ -31,29 +45,30 @@ const Index = () => {
               </div>
               <p className="text-gray-400 leading-relaxed mb-6 max-w-md">
                 Connecting millions of Muslims worldwide with certified agents 
-                for their sacred journey to Makkah and Madinah.
+                for their sacred journey to Makkah and Madinah. Join our community
+                of pilgrims sharing their spiritual experiences.
               </p>
               <div className="flex space-x-4">
-                <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors cursor-pointer">
+                <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors cursor-pointer transform hover:scale-110">
                   <span className="text-sm">📱</span>
                 </div>
-                <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors cursor-pointer">
+                <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors cursor-pointer transform hover:scale-110">
                   <span className="text-sm">📧</span>
                 </div>
-                <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors cursor-pointer">
+                <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors cursor-pointer transform hover:scale-110">
                   <span className="text-sm">🌐</span>
                 </div>
               </div>
             </div>
             
             <div>
-              <h4 className="font-semibold text-lg mb-4">Quick Links</h4>
+              <h4 className="font-semibold text-lg mb-4">Services</h4>
               <ul className="space-y-2 text-gray-400">
                 <li><a href="#" className="hover:text-emerald-400 transition-colors">Hajj Packages</a></li>
                 <li><a href="#" className="hover:text-emerald-400 transition-colors">Umrah Packages</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Visa Services</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Hotel Booking</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Flight Booking</a></li>
+                <li><a href="#" className="hover:text-emerald-400 transition-colors">Agent Marketplace</a></li>
+                <li><a href="#" className="hover:text-emerald-400 transition-colors">Community Forum</a></li>
+                <li><a href="#" className="hover:text-emerald-400 transition-colors">Travel Blog</a></li>
               </ul>
             </div>
             

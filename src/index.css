@@ -204,13 +204,6 @@
   }
 }
 
-/* Enhanced responsive breakpoints */
-@screen xs {
-  .container {
-    max-width: 475px;
-  }
-}
-
 /* Print styles */
 @media print {
   .no-print {

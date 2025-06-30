@@ -1,11 +1,13 @@
 
 import React, { useState } from 'react';
 import { Menu, X, Globe, User, Bell, MessageCircle } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [language, setLanguage] = useState('en');
+  const location = useLocation();
 
   const languages = [
     { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -15,12 +17,14 @@ const Header = () => {
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
+  const isActive = (path: string) => location.pathname === path;
+
   return (
     <header className="bg-white/95 backdrop-blur-sm border-b border-emerald-100 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
+          <Link to="/" className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-islamic rounded-full flex items-center justify-center animate-pulse-glow">
               <span className="text-white font-bold text-lg">حج</span>
             </div>
@@ -30,25 +34,42 @@ const Header = () => {
               </h1>
               <p className="text-xs text-gray-600">Hajj & Umrah Platform</p>
             </div>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <a href="#" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium">
+            <Link 
+              to="/" 
+              className={`font-medium transition-colors ${
+                isActive('/') ? 'text-emerald-600' : 'text-gray-700 hover:text-emerald-600'
+              }`}
+            >
               Home
-            </a>
-            <a href="#" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium">
-              Packages
-            </a>
-            <a href="#" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium">
+            </Link>
+            <Link 
+              to="/community" 
+              className={`font-medium transition-colors ${
+                isActive('/community') ? 'text-emerald-600' : 'text-gray-700 hover:text-emerald-600'
+              }`}
+            >
               Community
-            </a>
-            <a href="#" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium">
+            </Link>
+            <Link 
+              to="/agents" 
+              className={`font-medium transition-colors ${
+                isActive('/agents') ? 'text-emerald-600' : 'text-gray-700 hover:text-emerald-600'
+              }`}
+            >
               Agents
-            </a>
-            <a href="#" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium">
+            </Link>
+            <Link 
+              to="/support" 
+              className={`font-medium transition-colors ${
+                isActive('/support') ? 'text-emerald-600' : 'text-gray-700 hover:text-emerald-600'
+              }`}
+            >
               Support
-            </a>
+            </Link>
           </nav>
 
           {/* Right Side Actions */}
@@ -103,21 +124,42 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-emerald-100">
             <nav className="flex flex-col space-y-3 pt-4">
-              <a href="#" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium py-2">
+              <Link 
+                to="/" 
+                className={`font-medium transition-colors py-2 ${
+                  isActive('/') ? 'text-emerald-600' : 'text-gray-700 hover:text-emerald-600'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
                 Home
-              </a>
-              <a href="#" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium py-2">
-                Packages
-              </a>
-              <a href="#" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium py-2">
+              </Link>
+              <Link 
+                to="/community" 
+                className={`font-medium transition-colors py-2 ${
+                  isActive('/community') ? 'text-emerald-600' : 'text-gray-700 hover:text-emerald-600'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
                 Community
-              </a>
-              <a href="#" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium py-2">
+              </Link>
+              <Link 
+                to="/agents" 
+                className={`font-medium transition-colors py-2 ${
+                  isActive('/agents') ? 'text-emerald-600' : 'text-gray-700 hover:text-emerald-600'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
                 Agents
-              </a>
-              <a href="#" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium py-2">
+              </Link>
+              <Link 
+                to="/support" 
+                className={`font-medium transition-colors py-2 ${
+                  isActive('/support') ? 'text-emerald-600' : 'text-gray-700 hover:text-emerald-600'
+                }`}
+                onClick={() => setIsMenuO(false)}
+              >
                 Support
-              </a>
+              </Link>
             </nav>
           </div>
         )}

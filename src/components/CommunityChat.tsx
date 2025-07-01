@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Users, Heart, Share2, MessageCircle, Clock } from 'lucide-react';
+import { Send, Users, Heart, Share2, MessageCircle, Clock, MapPin, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ const CommunityChat = () => {
       user: 'Ahmed Al-Rashid',
       avatar: '👨‍💼',
       country: '🇸🇦',
+      location: 'Riyadh, Saudi Arabia',
       message: 'Assalamu alaikum everyone! Just completed my Hajj journey. What an incredible experience! The organization was perfect.',
       time: '2 minutes ago',
       likes: 12,
@@ -23,6 +24,7 @@ const CommunityChat = () => {
       user: 'Fatima Hassan',
       avatar: '👩‍💼',
       country: '🇪🇬',
+      location: 'Cairo, Egypt',
       message: 'MashAllah brother Ahmed! Could you share which agent you used? I\'m planning for next year InshaAllah.',
       time: '5 minutes ago',
       likes: 8,
@@ -34,6 +36,7 @@ const CommunityChat = () => {
       user: 'Omar Bin Said',
       avatar: '👨‍🦲',
       country: '🇦🇪',
+      location: 'Dubai, UAE',
       message: 'For those planning Umrah, I highly recommend booking early. The prices are much better and you get better accommodation options.',
       time: '10 minutes ago',
       likes: 15,
@@ -45,6 +48,7 @@ const CommunityChat = () => {
       user: 'Aisha Malik',
       avatar: '👩‍🦱',
       country: '🇵🇰',
+      location: 'Karachi, Pakistan',
       message: 'SubhanAllah! I\'m so excited for my first Umrah next month. Any tips for first-time pilgrims?',
       time: '15 minutes ago',
       likes: 6,
@@ -56,6 +60,7 @@ const CommunityChat = () => {
       user: 'Ibrahim Khan',
       avatar: '👨‍🧔',
       country: '🇧🇩',
+      location: 'Dhaka, Bangladesh',
       message: 'Remember to make lots of dua for the Ummah when you\'re there. May Allah accept all our pilgrimages. Ameen!',
       time: '20 minutes ago',
       likes: 25,
@@ -65,13 +70,14 @@ const CommunityChat = () => {
   ]);
 
   const [newMessage, setNewMessage] = useState('');
+  const [userLocation, setUserLocation] = useState('');
   const [onlineUsers] = useState([
-    { name: 'Ahmed Al-Rashid', avatar: '👨‍💼', country: '🇸🇦' },
-    { name: 'Fatima Hassan', avatar: '👩‍💼', country: '🇪🇬' },
-    { name: 'Aisha Malik', avatar: '👩‍🦱', country: '🇵🇰' },
-    { name: 'Ibrahim Khan', avatar: '👨‍🧔', country: '🇧🇩' },
-    { name: 'Yusuf Ahmed', avatar: '👨‍💻', country: '🇮🇩' },
-    { name: 'Khadija Omar', avatar: '👩‍🎓', country: '🇲🇦' }
+    { name: 'Ahmed Al-Rashid', avatar: '👨‍💼', country: '🇸🇦', location: 'Riyadh, Saudi Arabia', isOnline: true },
+    { name: 'Fatima Hassan', avatar: '👩‍💼', country: '🇪🇬', location: 'Cairo, Egypt', isOnline: true },
+    { name: 'Aisha Malik', avatar: '👩‍🦱', country: '🇵🇰', location: 'Karachi, Pakistan', isOnline: true },
+    { name: 'Ibrahim Khan', avatar: '👨‍🧔', country: '🇧🇩', location: 'Dhaka, Bangladesh', isOnline: true },
+    { name: 'Yusuf Ahmed', avatar: '👨‍💻', country: '🇮🇩', location: 'Jakarta, Indonesia', isOnline: true },
+    { name: 'Khadija Omar', avatar: '👩‍🎓', country: '🇲🇦', location: 'Casablanca, Morocco', isOnline: false }
   ]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -84,6 +90,37 @@ const CommunityChat = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Detect user location
+  useEffect(() => {
+    const detectLocation = async () => {
+      try {
+        if ('geolocation' in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              // Simulate reverse geocoding (in real app, use actual geocoding service)
+              const locations = [
+                'Lagos, Nigeria',
+                'London, UK', 
+                'New York, USA',
+                'Dubai, UAE',
+                'Istanbul, Turkey'
+              ];
+              const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+              setUserLocation(randomLocation);
+            },
+            (error) => {
+              setUserLocation('Location not available');
+            }
+          );
+        }
+      } catch (error) {
+        setUserLocation('Location not available');
+      }
+    };
+
+    detectLocation();
+  }, []);
+
   const handleSendMessage = () => {
     if (newMessage.trim()) {
       const message = {
@@ -91,6 +128,7 @@ const CommunityChat = () => {
         user: 'You',
         avatar: '👤',
         country: '🌍',
+        location: userLocation || 'Unknown Location',
         message: newMessage,
         time: 'Just now',
         likes: 0,
@@ -110,6 +148,8 @@ const CommunityChat = () => {
     ));
   };
 
+  const onlineCount = onlineUsers.filter(user => user.isOnline).length;
+
   return (
     <div className="max-w-6xl mx-auto grid lg:grid-cols-4 gap-6">
       {/* Main Chat Area */}
@@ -121,8 +161,14 @@ const CommunityChat = () => {
               <span>Community Chat</span>
               <div className="flex items-center space-x-1 text-sm text-gray-500">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span>{onlineUsers.length} online</span>
+                <span>{onlineCount} online</span>
               </div>
+              {userLocation && (
+                <div className="flex items-center space-x-1 text-xs text-gray-500">
+                  <MapPin className="w-3 h-3" />
+                  <span>{userLocation}</span>
+                </div>
+              )}
             </CardTitle>
           </CardHeader>
 
@@ -133,9 +179,17 @@ const CommunityChat = () => {
                 <div key={message.id} className="flex space-x-3">
                   <div className="relative">
                     <span className="text-2xl">{message.avatar}</span>
-                    {message.isOnline && (
-                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                    )}
+                    <div className="absolute -bottom-1 -right-1">
+                      {message.isOnline ? (
+                        <div className="w-3 h-3 bg-green-500 rounded-full border-2 border-white">
+                          <Wifi className="w-2 h-2 text-white absolute top-0 left-0" />
+                        </div>
+                      ) : (
+                        <div className="w-3 h-3 bg-gray-400 rounded-full border-2 border-white">
+                          <WifiOff className="w-2 h-2 text-white absolute top-0 left-0" />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="flex-1 bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
@@ -143,9 +197,24 @@ const CommunityChat = () => {
                       <span className="font-semibold text-gray-900">{message.user}</span>
                       <span className="text-lg">{message.country}</span>
                       <div className="flex items-center space-x-1 text-xs text-gray-500">
+                        <MapPin className="w-3 h-3" />
+                        <span>{message.location}</span>
+                      </div>
+                      <div className="flex items-center space-x-1 text-xs text-gray-500">
                         <Clock className="w-3 h-3" />
                         <span>{message.time}</span>
                       </div>
+                      {message.isOnline ? (
+                        <span className="text-xs text-green-600 font-medium flex items-center space-x-1">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span>Online</span>
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400 flex items-center space-x-1">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                          <span>Offline</span>
+                        </span>
+                      )}
                     </div>
                     
                     <p className="text-gray-700 leading-relaxed mb-3">{message.message}</p>
@@ -191,8 +260,15 @@ const CommunityChat = () => {
                 <Send className="w-4 h-4" />
               </Button>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Share your experiences, ask questions, and connect with fellow pilgrims
+            <p className="text-xs text-gray-500 mt-2 flex items-center space-x-2">
+              <span>Share your experiences, ask questions, and connect with fellow pilgrims</span>
+              {userLocation && (
+                <span className="flex items-center space-x-1">
+                  <span>•</span>
+                  <MapPin className="w-3 h-3" />
+                  <span>Chatting from {userLocation}</span>
+                </span>
+              )}
             </p>
           </div>
         </Card>
@@ -204,22 +280,39 @@ const CommunityChat = () => {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Users className="w-5 h-5 text-emerald-600" />
-              <span>Online Now</span>
+              <span>Members ({onlineUsers.length})</span>
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4">
             <div className="space-y-3">
               {onlineUsers.map((user, index) => (
-                <div key={index} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                <div key={index} className={`flex items-center space-x-3 p-2 rounded-lg transition-colors ${
+                  user.isOnline ? 'hover:bg-green-50' : 'hover:bg-gray-50'
+                }`}>
                   <div className="relative">
                     <span className="text-lg">{user.avatar}</span>
-                    <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-green-500 rounded-full border border-white"></div>
+                    <div className="absolute -bottom-1 -right-1">
+                      {user.isOnline ? (
+                        <div className="w-2 h-2 bg-green-500 rounded-full border border-white"></div>
+                      ) : (
+                        <div className="w-2 h-2 bg-gray-400 rounded-full border border-white"></div>
+                      )}
+                    </div>
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium text-sm text-gray-900">{user.name}</div>
-                    <div className="flex items-center space-x-1">
-                      <span className="text-sm">{user.country}</span>
+                    <div className="font-medium text-sm text-gray-900 flex items-center space-x-2">
+                      <span>{user.name}</span>
+                      {user.isOnline ? (
+                        <span className="text-xs text-green-600 font-bold">●</span>
+                      ) : (
+                        <span className="text-xs text-gray-400">●</span>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-1 text-xs text-gray-500">
+                      <span>{user.country}</span>
+                      <MapPin className="w-3 h-3" />
+                      <span>{user.location}</span>
                     </div>
                   </div>
                 </div>
@@ -234,6 +327,16 @@ const CommunityChat = () => {
                 <li>• Help fellow pilgrims</li>
                 <li>• Keep discussions Islamic</li>
               </ul>
+            </div>
+
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <h4 className="font-semibold text-blue-800 mb-2 flex items-center space-x-1">
+                <Globe className="w-4 h-4" />
+                <span>Global Community</span>
+              </h4>
+              <p className="text-xs text-blue-700">
+                Connect with Muslims from {onlineUsers.length} different locations worldwide
+              </p>
             </div>
           </CardContent>
         </Card>

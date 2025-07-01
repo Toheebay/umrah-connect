@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Book, Play, Download, Star, Search, Filter } from 'lucide-react';
+import { Book, Play, Download, Star, Search, Filter, Globe, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,27 +9,105 @@ const IslamicResources = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   const categories = [
-    { id: 'all', name: 'All Resources', count: 24 },
+    { id: 'all', name: 'All Resources', count: 32 },
     { id: 'hajj', name: 'Hajj Guide', count: 8 },
-    { id: 'umrah', name: 'Umrah Guide', count: 6 },
+    { id: 'umrah', name: 'Umrah Guide', count: 8 },
     { id: 'duas', name: 'Duas & Prayers', count: 5 },
-    { id: 'history', name: 'Islamic History', count: 5 }
+    { id: 'history', name: 'Islamic History', count: 6 },
+    { id: 'quran', name: 'Complete Quran', count: 3 },
+    { id: 'hadith', name: 'Hadith Collections', count: 2 }
   ];
 
   const resources = [
+    // Complete Quran Resources
     {
       id: 1,
-      title: 'Complete Hajj Guide',
-      category: 'hajj',
-      type: 'PDF',
-      description: 'Comprehensive step-by-step guide for Hajj pilgrimage including rituals, duas, and practical tips.',
+      title: 'Complete Quran - Arabic Text',
+      category: 'quran',
+      type: 'Text',
+      description: 'Complete Holy Quran in original Arabic with beautiful calligraphy and proper Tajweed marks.',
       rating: 4.9,
-      downloads: 12500,
-      size: '2.5 MB',
-      image: 'https://images.unsplash.com/photo-1466442929976-97f336a657be?auto=format&fit=crop&w=300&q=80'
+      downloads: 25600,
+      size: '4.2 MB',
+      languages: ['Arabic'],
+      image: 'https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=300&q=80'
     },
     {
       id: 2,
+      title: 'Complete Quran - English Translation',
+      category: 'quran',
+      type: 'Text',
+      description: 'Complete Quran with accurate English translation by multiple renowned scholars including Sahih International.',
+      rating: 4.8,
+      downloads: 18900,
+      size: '3.8 MB',
+      languages: ['English'],
+      image: 'https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=300&q=80'
+    },
+    {
+      id: 3,
+      title: 'Quran - Arabic & English Combined',
+      category: 'quran',
+      type: 'Interactive',
+      description: 'Interactive Quran with side-by-side Arabic text and English translation, verse-by-verse navigation.',
+      rating: 4.9,
+      downloads: 32100,
+      size: '6.5 MB',
+      languages: ['Arabic', 'English'],
+      image: 'https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=300&q=80'
+    },
+    // Hadith Collections
+    {
+      id: 4,
+      title: 'Riyad as-Salihin - Complete Arabic Text',
+      category: 'hadith',
+      type: 'Text',
+      description: 'Complete collection of Riyad as-Salihin in original Arabic with proper diacritics and chapter divisions.',
+      rating: 4.9,
+      downloads: 15400,
+      size: '2.8 MB',
+      languages: ['Arabic'],
+      image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=300&q=80'
+    },
+    {
+      id: 5,
+      title: 'Riyad as-Salihin - English Translation',
+      category: 'hadith',
+      type: 'Text',
+      description: 'Complete English translation of Riyad as-Salihin with detailed explanations and commentary.',
+      rating: 4.8,
+      downloads: 12800,
+      size: '3.2 MB',
+      languages: ['English'],
+      image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=300&q=80'
+    },
+    // Complete Umrah Guides
+    {
+      id: 6,
+      title: 'Complete Umrah Guide - Arabic',
+      category: 'umrah',
+      type: 'Text',
+      description: 'Comprehensive Umrah guide in Arabic covering all rituals, supplications, and practical instructions.',
+      rating: 4.9,
+      downloads: 9800,
+      size: '2.1 MB',
+      languages: ['Arabic'],
+      image: 'https://images.unsplash.com/photo-1492321936769-b49830bc1d1e?auto=format&fit=crop&w=300&q=80'
+    },
+    {
+      id: 7,
+      title: 'Complete Umrah Guide - English',
+      category: 'umrah',
+      type: 'Text',
+      description: 'Step-by-step Umrah guide in English with detailed explanations, maps, and practical tips for pilgrims.',
+      rating: 4.8,
+      downloads: 11200,
+      size: '2.5 MB',
+      languages: ['English'],
+      image: 'https://images.unsplash.com/photo-1492321936769-b49830bc1d1e?auto=format&fit=crop&w=300&q=80'
+    },
+    {
+      id: 8,
       title: 'Umrah Rituals Explained',
       category: 'umrah',
       type: 'Video',
@@ -38,10 +115,61 @@ const IslamicResources = () => {
       rating: 4.8,
       downloads: 8900,
       duration: '45 min',
+      languages: ['Arabic', 'English'],
       image: 'https://images.unsplash.com/photo-1492321936769-b49830bc1d1e?auto=format&fit=crop&w=300&q=80'
     },
+    // Islamic History Books
     {
-      id: 3,
+      id: 9,
+      title: 'Men Around The Messenger - Complete',
+      category: 'history',
+      type: 'Text',
+      description: 'Complete book about the companions of Prophet Muhammad (PBUH) - inspiring stories and biographies.',
+      rating: 4.9,
+      downloads: 7600,
+      size: '4.8 MB',
+      languages: ['English'],
+      image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=300&q=80'
+    },
+    {
+      id: 10,
+      title: 'History of the Holy Kaaba',
+      category: 'history',
+      type: 'Text',
+      description: 'Detailed historical account of the Holy Kaaba from the time of Prophet Ibrahim (AS) to present day.',
+      rating: 4.7,
+      downloads: 7800,
+      size: '1.8 MB',
+      languages: ['English'],
+      image: 'https://images.unsplash.com/photo-1466442929976-97f336a657be?auto=format&fit=crop&w=300&q=80'
+    },
+    {
+      id: 11,
+      title: 'The Sealed Nectar (Ar-Raheeq Al-Makhtum)',
+      category: 'history',
+      type: 'Text',
+      description: 'Complete biography of Prophet Muhammad (PBUH) - authentic and comprehensive life story.',
+      rating: 4.9,
+      downloads: 13400,
+      size: '5.2 MB',
+      languages: ['English'],
+      image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=300&q=80'
+    },
+    // Essential Hajj Resources
+    {
+      id: 12,
+      title: 'Complete Hajj Guide',
+      category: 'hajj',
+      type: 'PDF',
+      description: 'Comprehensive step-by-step guide for Hajj pilgrimage including rituals, duas, and practical tips.',
+      rating: 4.9,
+      downloads: 12500,
+      size: '2.5 MB',
+      languages: ['English'],
+      image: 'https://images.unsplash.com/photo-1466442929976-97f336a657be?auto=format&fit=crop&w=300&q=80'
+    },
+    {
+      id: 13,
       title: 'Essential Duas for Pilgrimage',
       category: 'duas',
       type: 'Audio',
@@ -49,39 +177,7 @@ const IslamicResources = () => {
       rating: 4.9,
       downloads: 15600,
       duration: '1.2 hours',
-      image: 'https://images.unsplash.com/photo-1469041797191-50ace28483c3?auto=format&fit=crop&w=300&q=80'
-    },
-    {
-      id: 4,
-      title: 'History of the Holy Kaaba',
-      category: 'history',
-      type: 'PDF',
-      description: 'Detailed historical account of the Holy Kaaba from the time of Prophet Ibrahim (AS) to present day.',
-      rating: 4.7,
-      downloads: 7800,
-      size: '1.8 MB',
-      image: 'https://images.unsplash.com/photo-1466442929976-97f336a657be?auto=format&fit=crop&w=300&q=80'
-    },
-    {
-      id: 5,
-      title: 'Tawaf and Saee Guide',
-      category: 'hajj',
-      type: 'Interactive',
-      description: 'Interactive guide for performing Tawaf around Kaaba and Saee between Safa and Marwah.',
-      rating: 4.8,
-      downloads: 9200,
-      size: 'Web App',
-      image: 'https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=300&q=80'
-    },
-    {
-      id: 6,
-      title: 'Prophetic Supplications',
-      category: 'duas',
-      type: 'Audio',
-      description: 'Authentic supplications from Quran and Sunnah specifically for pilgrimage.',
-      rating: 4.9,
-      downloads: 11400,
-      duration: '2.1 hours',
+      languages: ['Arabic', 'English'],
       image: 'https://images.unsplash.com/photo-1469041797191-50ace28483c3?auto=format&fit=crop&w=300&q=80'
     }
   ];
@@ -98,6 +194,7 @@ const IslamicResources = () => {
       case 'Video': return '🎥';
       case 'Audio': return '🎧';
       case 'Interactive': return '💻';
+      case 'Text': return '📖';
       default: return '📚';
     }
   };
@@ -108,6 +205,7 @@ const IslamicResources = () => {
       case 'Video': return 'bg-blue-100 text-blue-700';
       case 'Audio': return 'bg-green-100 text-green-700';
       case 'Interactive': return 'bg-purple-100 text-purple-700';
+      case 'Text': return 'bg-orange-100 text-orange-700';
       default: return 'bg-gray-100 text-gray-700';
     }
   };
@@ -188,6 +286,15 @@ const IslamicResources = () => {
                   <div className={`absolute top-4 right-4 px-2 py-1 rounded-full text-xs font-bold ${getTypeColor(resource.type)}`}>
                     {getTypeIcon(resource.type)} {resource.type}
                   </div>
+                  {resource.languages && (
+                    <div className="absolute top-4 left-4 flex space-x-1">
+                      {resource.languages.map((lang, idx) => (
+                        <span key={idx} className="bg-black/70 text-white px-2 py-1 rounded-full text-xs">
+                          {lang === 'Arabic' ? '🇸🇦' : '🇺🇸'} {lang}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 
                 <CardContent className="p-6">
@@ -228,6 +335,28 @@ const IslamicResources = () => {
       </div>
     </div>
   );
+};
+
+const getTypeIcon = (type: string) => {
+  switch (type) {
+    case 'PDF': return '📄';
+    case 'Video': return '🎥';
+    case 'Audio': return '🎧';
+    case 'Interactive': return '💻';
+    case 'Text': return '📖';
+    default: return '📚';
+  }
+};
+
+const getTypeColor = (type: string) => {
+  switch (type) {
+    case 'PDF': return 'bg-red-100 text-red-700';
+    case 'Video': return 'bg-blue-100 text-blue-700';
+    case 'Audio': return 'bg-green-100 text-green-700';
+    case 'Interactive': return 'bg-purple-100 text-purple-700';
+    case 'Text': return 'bg-orange-100 text-orange-700';
+    default: return 'bg-gray-100 text-gray-700';
+  }
 };
 
 export default IslamicResources;

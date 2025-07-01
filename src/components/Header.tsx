@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Menu, X, MessageCircle, Users, User, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLocation, Link } from 'react-router-dom';
+import LanguageSelector from './LanguageSelector';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,7 +21,7 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-lg border-b border-emerald-100">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-lg border-b border-emerald-100">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -52,8 +53,9 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* CTA Button */}
-          <div className="hidden md:block">
+          {/* Language Selector & CTA Button */}
+          <div className="hidden md:flex items-center space-x-4">
+            <LanguageSelector />
             <Button className="bg-gradient-islamic hover:opacity-90 text-white px-6 py-2 rounded-full shadow-lg transform hover:scale-105 transition-all">
               Get Started
             </Button>
@@ -87,7 +89,8 @@ const Header = () => {
                   <span>{item.name}</span>
                 </Link>
               ))}
-              <div className="pt-4">
+              <div className="pt-4 space-y-3">
+                <LanguageSelector />
                 <Button className="w-full bg-gradient-islamic hover:opacity-90 text-white py-3 rounded-full shadow-lg">
                   Get Started
                 </Button>

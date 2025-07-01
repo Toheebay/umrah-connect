@@ -17,7 +17,7 @@ const Index = () => {
       <Blog />
       <AgentSubscription />
       
-      {/* Enhanced Footer with Hajj/Umrah imagery */}
+      {/* Enhanced Footer with Updated Contact Info */}
       <footer className="relative bg-gray-900 text-white py-16 overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0 opacity-20">
@@ -46,6 +46,33 @@ const Index = () => {
                 for their sacred journey to Makkah and Madinah. Join our community
                 of pilgrims sharing their spiritual experiences.
               </p>
+              
+              {/* Contact Information */}
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">📱</span>
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">WhatsApp</p>
+                    <a href="https://wa.me/2347067412852" className="text-emerald-400 hover:text-emerald-300 transition-colors">
+                      +234 706 741 2852
+                    </a>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">📧</span>
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">Email</p>
+                    <a href="mailto:adebayoajani23@toheebay.online" className="text-emerald-400 hover:text-emerald-300 transition-colors">
+                      adebayoajani23@toheebay.online
+                    </a>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex space-x-4">
                 <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors cursor-pointer transform hover:scale-110">
                   <span className="text-sm">📱</span>
@@ -84,9 +111,14 @@ const Index = () => {
           
           <div className="border-t border-gray-800 pt-8 mt-12">
             <div className="flex flex-col md:flex-row justify-between items-center">
-              <p className="text-gray-400 text-sm">
-                © 2024 UmrahConnect. All rights reserved. | Made with ❤️ for the Muslim Ummah
-              </p>
+              <div className="text-center md:text-left">
+                <p className="text-gray-400 text-sm mb-2">
+                  © 2025 UmrahConnect. All rights reserved. | Made with ❤️ for the Muslim Ummah
+                </p>
+                <p className="text-emerald-400 text-sm font-medium">
+                  Proudly Powered by <span className="text-white font-bold">Toheebay</span> @ Adebayo
+                </p>
+              </div>
               <div className="flex space-x-6 mt-4 md:mt-0">
                 <a href="#" className="text-gray-400 hover:text-emerald-400 text-sm transition-colors">Privacy Policy</a>
                 <a href="#" className="text-gray-400 hover:text-emerald-400 text-sm transition-colors">Terms of Service</a>

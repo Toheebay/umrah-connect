@@ -101,27 +101,39 @@ const FeaturesSection = () => {
           ))}
         </div>
 
-        {/* Stats Section */}
-        <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 lg:p-12 border border-emerald-100">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">
-              Trusted by Millions Worldwide
+        {/* Enhanced Stats Section */}
+        <div className="bg-gradient-to-br from-emerald-600 via-blue-600 to-purple-700 backdrop-blur-sm rounded-3xl p-8 lg:p-16 border border-emerald-100 relative overflow-hidden">
+          {/* Animated Background Elements */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full animate-pulse"></div>
+            <div className="absolute bottom-10 right-10 w-24 h-24 bg-yellow-300 rounded-full animate-bounce"></div>
+            <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-pink-300 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+          </div>
+
+          <div className="text-center mb-12 relative z-10">
+            <h3 className="text-4xl lg:text-5xl font-black text-white mb-6 drop-shadow-2xl">
+              <span className="bg-gradient-to-r from-yellow-300 via-pink-300 to-white bg-clip-text text-transparent">
+                Trusted by Millions
+              </span>
+              <span className="block text-3xl lg:text-4xl font-extrabold text-white mt-2">
+                Worldwide
+              </span>
             </h3>
-            <p className="text-gray-600 text-lg">
+            <p className="text-white/90 text-xl font-semibold drop-shadow-lg">
               Our commitment to excellence speaks through our numbers
             </p>
           </div>
           
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 relative z-10">
             {stats.map((stat, index) => (
               <div key={index} className="text-center group">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-islamic rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <stat.icon className="w-8 h-8 text-white" />
+                <div className="w-20 h-20 mx-auto mb-6 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center group-hover:scale-125 transition-all duration-300 border-2 border-white/30 shadow-2xl">
+                  <stat.icon className="w-10 h-10 text-white drop-shadow-lg" />
                 </div>
-                <div className="text-3xl font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors">
+                <div className="text-4xl lg:text-5xl font-black text-white mb-3 group-hover:text-yellow-300 transition-colors drop-shadow-2xl">
                   {stat.value}
                 </div>
-                <div className="text-gray-600 font-medium">
+                <div className="text-white/90 font-bold text-lg drop-shadow-lg">
                   {stat.label}
                 </div>
               </div>

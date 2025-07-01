@@ -4,10 +4,12 @@ import { Crown, Upload, Search, Users, Camera, CheckCircle, Star } from 'lucide-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import FlutterwavePayment from './FlutterwavePayment';
 
 const AgentRegistration = () => {
   const [step, setStep] = useState(1);
   const [selectedPlan, setSelectedPlan] = useState('');
+  const [showPayment, setShowPayment] = useState(false);
   const [formData, setFormData] = useState({
     companyName: '',
     email: '',
@@ -73,15 +75,52 @@ const AgentRegistration = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleFileUpload = (field: string, file: File) => {
-    setFormData(prev => ({ ...prev, [field]: file }));
+  const handleFileUpload = (field: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, [field]: file }));
+    }
   };
 
   const handleSubmit = () => {
-    console.log('Registration data:', { ...formData, selectedPlan });
-    // Here you would integrate with Stripe for payment processing
-    alert('Registration submitted! Redirecting to payment...');
+    if (!formData.email) {
+      alert('Please provide an email address for payment');
+      return;
+    }
+    setShowPayment(true);
   };
+
+  const handlePaymentSuccess = (response: any) => {
+    console.log('Payment successful:', response);
+    console.log('Registration data:', { ...formData, selectedPlan });
+    alert('Payment successful! Your agent registration is complete.');
+    setShowPayment(false);
+    // Here you would save the registration data to your database
+  };
+
+  const handlePaymentClose = () => {
+    setShowPayment(false);
+  };
+
+  const selectedPlanData = plans.find(p => p.id === selectedPlan);
+
+  if (showPayment && selectedPlanData) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <FlutterwavePayment
+            amount={selectedPlanData.price}
+            currency="USD"
+            email={formData.email}
+            phone={formData.phone}
+            name={formData.companyName}
+            onSuccess={handlePaymentSuccess}
+            onClose={handlePaymentClose}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -210,7 +249,7 @@ const AgentRegistration = () => {
                     <Input
                       value={formData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
-                      placeholder="+1 (555) 123-4567"
+                      placeholder="+234 xxx xxx xxxx"
                       className="w-full"
                     />
                   </div>
@@ -315,14 +354,17 @@ const AgentRegistration = () => {
               <CardContent className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Profile Image</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-emerald-400 transition-colors">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-emerald-400 transition-colors cursor-pointer">
                     <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">Click to upload profile image</p>
+                    <p className="text-sm text-gray-600 mb-2">Click to upload profile image</p>
+                    {formData.profileImage && (
+                      <p className="text-xs text-emerald-600">{formData.profileImage.name}</p>
+                    )}
                     <input 
                       type="file" 
                       accept="image/*" 
-                      className="hidden"
-                      onChange={(e) => e.target.files && handleFileUpload('profileImage', e.target.files[0])}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      onChange={(e) => handleFileUpload('profileImage', e)}
                     />
                   </div>
                 </div>
@@ -330,15 +372,18 @@ const AgentRegistration = () => {
                 {selectedPlan !== 'basic' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Advertisement Banner</label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-emerald-400 transition-colors">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-emerald-400 transition-colors cursor-pointer relative">
                       <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">Upload your advertisement banner</p>
-                      <p className="text-xs text-gray-500 mt-1">Recommended: 1200x400px</p>
+                      <p className="text-sm text-gray-600 mb-1">Upload your advertisement banner</p>
+                      <p className="text-xs text-gray-500 mb-2">Recommended: 1200x400px</p>
+                      {formData.adImage && (
+                        <p className="text-xs text-emerald-600">{formData.adImage.name}</p>
+                      )}
                       <input 
                         type="file" 
                         accept="image/*" 
-                        className="hidden"
-                        onChange={(e) => e.target.files && handleFileUpload('adImage', e.target.files[0])}
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                        onChange={(e) => handleFileUpload('adImage', e)}
                       />
                     </div>
                   </div>
@@ -358,12 +403,12 @@ const AgentRegistration = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                     <div>
-                      <h4 className="font-semibold">{plans.find(p => p.id === selectedPlan)?.name}</h4>
+                      <h4 className="font-semibold">{selectedPlanData?.name}</h4>
                       <p className="text-sm text-gray-600">Monthly subscription</p>
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-emerald-600">
-                        ${plans.find(p => p.id === selectedPlan)?.price}
+                        ${selectedPlanData?.price}
                       </div>
                       <div className="text-sm text-gray-500">/month</div>
                     </div>
@@ -372,13 +417,21 @@ const AgentRegistration = () => {
                   <div className="border-t pt-4">
                     <h5 className="font-semibold mb-2">Your Benefits:</h5>
                     <ul className="space-y-2">
-                      {plans.find(p => p.id === selectedPlan)?.features.slice(0, 3).map((feature, index) => (
+                      {selectedPlanData?.features.slice(0, 3).map((feature, index) => (
                         <li key={index} className="flex items-center space-x-2 text-sm">
                           <CheckCircle className="w-4 h-4 text-emerald-500" />
                           <span>{feature}</span>
                         </li>
                       ))}
                     </ul>
+                  </div>
+
+                  <div className="bg-blue-50 p-3 rounded-lg">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Shield className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">Secured by Flutterwave</span>
+                    </div>
+                    <p className="text-xs text-blue-600">Your payment is processed securely with bank-level encryption</p>
                   </div>
 
                   <Button 

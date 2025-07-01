@@ -3,31 +3,35 @@ import React, { useState } from 'react';
 import { CreditCard, Shield, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 
 interface FlutterwavePaymentProps {
   amount: number;
-  currency: string;
+  currency?: string;
   email: string;
   phone?: string;
   name?: string;
-  onSuccess?: (response: any) => void;
-  onClose?: () => void;
+  onPaymentSuccess?: (response: any) => void;
+  onPaymentError?: () => void;
+  loading?: boolean;
+  setLoading?: (loading: boolean) => void;
 }
 
 const FlutterwavePayment: React.FC<FlutterwavePaymentProps> = ({
   amount,
-  currency,
+  currency = 'USD',
   email,
   phone,
   name,
-  onSuccess,
-  onClose
+  onPaymentSuccess,
+  onPaymentError,
+  loading,
+  setLoading
 }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePayment = () => {
-    setIsLoading(true);
+    const loadingState = loading !== undefined ? setLoading : setIsLoading;
+    loadingState?.(true);
     
     // Flutterwave inline payment configuration
     const flutterwaveConfig = {
@@ -42,20 +46,22 @@ const FlutterwavePayment: React.FC<FlutterwavePaymentProps> = ({
         name: name || email.split('@')[0],
       },
       customizations: {
-        title: "Hajj & Umrah Package Payment",
-        description: "Payment for your spiritual journey",
-        logo: "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=100&q=80",
+        title: "Hajj & Umrah Registration Payment",
+        description: "Payment for agent registration",
+        logo: "https://images.unsplash.com/photo-1466442929976-97f336a657be?auto=format&fit=crop&w=100&q=80",
       },
       callback: (response: any) => {
-        setIsLoading(false);
+        loadingState?.(false);
         if (response.status === "successful") {
           console.log("Payment successful:", response);
-          onSuccess?.(response);
+          onPaymentSuccess?.(response);
+        } else {
+          onPaymentError?.();
         }
       },
       onclose: () => {
-        setIsLoading(false);
-        onClose?.();
+        loadingState?.(false);
+        onPaymentError?.();
       },
     };
 
@@ -72,6 +78,8 @@ const FlutterwavePayment: React.FC<FlutterwavePaymentProps> = ({
       document.head.appendChild(script);
     }
   };
+
+  const currentLoading = loading !== undefined ? loading : isLoading;
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -114,10 +122,10 @@ const FlutterwavePayment: React.FC<FlutterwavePaymentProps> = ({
 
         <Button
           onClick={handlePayment}
-          disabled={isLoading}
+          disabled={currentLoading}
           className="w-full bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white py-3 rounded-lg font-semibold"
         >
-          {isLoading ? (
+          {currentLoading ? (
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               <span>Processing...</span>

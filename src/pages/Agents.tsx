@@ -7,8 +7,18 @@ import AgentRegistration from '@/components/AgentRegistration';
 import ClientManagement from '@/components/ClientManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Store, CreditCard, UserPlus, Users } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const Agents = () => {
+  const { toast } = useToast();
+
+  const handleRegistrationSuccess = () => {
+    toast({
+      title: "Registration Complete!",
+      description: "Welcome to our agent network. You can now manage your clients and services.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -51,7 +61,7 @@ const Agents = () => {
           </TabsContent>
 
           <TabsContent value="register">
-            <AgentRegistration />
+            <AgentRegistration onRegistrationSuccess={handleRegistrationSuccess} />
           </TabsContent>
 
           <TabsContent value="manage">

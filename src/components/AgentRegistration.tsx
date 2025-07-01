@@ -5,13 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Upload, MapPin, Phone, Mail, Globe, Star, Shield, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, CheckCircle, CreditCard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import FlutterwavePayment from './FlutterwavePayment';
 
 interface AgentRegistrationProps {
-  onRegistrationSuccess: () => void;
+  onRegistrationSuccess?: () => void;
 }
 
 const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuccess }) => {
@@ -28,8 +27,32 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
   const [paymentSuccessful, setPaymentSuccessful] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState('basic');
+  const [selectedCurrency, setSelectedCurrency] = useState('USD');
 
   const { toast } = useToast();
+
+  const plans = [
+    { id: 'basic', name: 'Basic Plan', price: { USD: 199, EUR: 180, NGN: 320000 }, features: ['Basic listing', 'Customer support', 'Basic analytics'] },
+    { id: 'premium', name: 'Premium Plan', price: { USD: 399, EUR: 360, NGN: 640000 }, features: ['Priority listing', 'Advanced analytics', 'Marketing tools', 'Priority support'] },
+    { id: 'enterprise', name: 'Enterprise Plan', price: { USD: 699, EUR: 630, NGN: 1120000 }, features: ['Top listing', 'Full analytics suite', 'Custom branding', 'Dedicated support', 'API access'] }
+  ];
+
+  const currencies = [
+    { code: 'USD', symbol: '$', name: 'US Dollar' },
+    { code: 'EUR', symbol: '€', name: 'Euro' },
+    { code: 'NGN', symbol: '₦', name: 'Nigerian Naira' }
+  ];
+
+  const countries = [
+    { label: 'Saudi Arabia', value: 'SA' },
+    { label: 'United Arab Emirates', value: 'AE' },
+    { label: 'Qatar', value: 'QA' },
+    { label: 'Oman', value: 'OM' },
+    { label: 'Kuwait', value: 'KW' },
+    { label: 'Bahrain', value: 'BH' },
+    { label: 'Nigeria', value: 'NG' },
+  ];
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -41,7 +64,6 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
   const handleFileUpload = async () => {
     setUploading(true);
     try {
-      // Simulate file upload
       await new Promise(resolve => setTimeout(resolve, 2000));
       toast({
         title: "Files Uploaded!",
@@ -71,7 +93,6 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
     }
 
     try {
-      // Simulate form submission
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       toast({
@@ -91,9 +112,9 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
       setUploadedFiles([]);
       setPaymentSuccessful(false);
       setSelectedCountry('');
+      setSelectedPlan('basic');
 
-      // Call the success callback
-      onRegistrationSuccess();
+      onRegistrationSuccess?.();
 
     } catch (error) {
       toast({
@@ -104,7 +125,7 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
     }
   };
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = (response: any) => {
     setPaymentSuccessful(true);
     toast({
       title: "Payment Successful!",
@@ -121,14 +142,8 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
     });
   };
 
-  const countries = [
-    { label: 'Saudi Arabia', value: 'SA' },
-    { label: 'United Arab Emirates', value: 'AE' },
-    { label: 'Qatar', value: 'QA' },
-    { label: 'Oman', value: 'OM' },
-    { label: 'Kuwait', value: 'KW' },
-    { label: 'Bahrain', value: 'BH' },
-  ];
+  const getCurrentPlan = () => plans.find(p => p.id === selectedPlan) || plans[0];
+  const getCurrentPrice = () => getCurrentPlan().price[selectedCurrency as keyof typeof getCurrentPlan().price];
 
   return (
     <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl">
@@ -137,6 +152,56 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
       </CardHeader>
       <CardContent className="p-8">
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Plan Selection */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="plan">Select Plan</Label>
+              <Select onValueChange={setSelectedPlan} defaultValue={selectedPlan}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a plan" />
+                </SelectTrigger>
+                <SelectContent>
+                  {plans.map((plan) => (
+                    <SelectItem key={plan.id} value={plan.id}>
+                      {plan.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="currency">Currency</Label>
+              <Select onValueChange={setSelectedCurrency} defaultValue={selectedCurrency}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((currency) => (
+                    <SelectItem key={currency.code} value={currency.code}>
+                      {currency.symbol} {currency.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Plan Details */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h4 className="font-semibold mb-2">{getCurrentPlan().name}</h4>
+            <p className="text-2xl font-bold text-emerald-600 mb-2">
+              {currencies.find(c => c.code === selectedCurrency)?.symbol}{getCurrentPrice().toLocaleString()}
+            </p>
+            <ul className="text-sm text-gray-600 space-y-1">
+              {getCurrentPlan().features.map((feature, index) => (
+                <li key={index} className="flex items-center space-x-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           <div>
             <Label htmlFor="companyName">Company Name</Label>
             <Input
@@ -252,7 +317,10 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
 
           {/* Payment Section */}
           <div className="border p-4 rounded-md bg-gray-50">
-            <h4 className="font-semibold mb-2">Payment Information</h4>
+            <h4 className="font-semibold mb-2 flex items-center space-x-2">
+              <CreditCard className="w-5 h-5" />
+              <span>Payment Information</span>
+            </h4>
             {paymentSuccessful ? (
               <div className="flex items-center space-x-2 text-green-600">
                 <CheckCircle className="w-5 h-5" />
@@ -260,9 +328,12 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
               </div>
             ) : (
               <>
-                <p className="text-sm text-gray-600 mb-3">A one-time registration fee of $199 USD is required to become a verified agent.</p>
+                <p className="text-sm text-gray-600 mb-3">
+                  Registration fee: {currencies.find(c => c.code === selectedCurrency)?.symbol}{getCurrentPrice().toLocaleString()} {selectedCurrency}
+                </p>
                 <FlutterwavePayment
-                  amount={199}
+                  amount={getCurrentPrice()}
+                  currency={selectedCurrency}
                   email={email}
                   phone={phone}
                   name={contactName}

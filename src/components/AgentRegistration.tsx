@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -159,7 +158,10 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
   };
 
   const getCurrentPlan = () => plans.find(p => p.id === selectedPlan) || plans[0];
-  const getCurrentPrice = () => getCurrentPlan().price[selectedCurrency as keyof typeof getCurrentPlan().price];
+  const getCurrentPrice = () => {
+    const plan = getCurrentPlan();
+    return plan.price[selectedCurrency as keyof typeof plan.price];
+  };
 
   return (
     <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl">

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Calendar, MapPin, Users, Star, ArrowRight, Plane, Clock, Shield, Award, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,12 +33,34 @@ const HeroSection = () => {
     }
   ];
 
-  const handleBooking = () => {
+  const handleSearchPackages = () => {
     if (selectedPackage === 'hajj' && !isSubscribed) {
-      alert('Hajj packages are only available through subscribed agents. Browse our marketplace to find certified agents.');
+      // Scroll to agent marketplace
+      const agentSection = document.querySelector('#agent-marketplace');
+      if (agentSection) {
+        agentSection.scrollIntoView({ behavior: 'smooth' });
+      }
       return;
     }
-    console.log('Booking package:', selectedPackage);
+    
+    // For regular packages, also scroll to marketplace
+    const agentSection = document.querySelector('#agent-marketplace');
+    if (agentSection) {
+      agentSection.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    console.log('Searching packages:', {
+      package: selectedPackage,
+      date: selectedDate,
+      guests: selectedGuests
+    });
+  };
+
+  const handleBrowseMarketplace = () => {
+    const agentSection = document.querySelector('#agent-marketplace');
+    if (agentSection) {
+      agentSection.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
@@ -126,13 +147,15 @@ const HeroSection = () => {
             {/* Enhanced CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
               <Button 
-                className="bg-gradient-islamic hover:opacity-90 text-white px-8 py-6 text-lg font-semibold rounded-xl transition-all transform hover:scale-105 shadow-2xl"
+                onClick={handleSearchPackages}
+                className="bg-gradient-to-r from-emerald-700 to-emerald-800 hover:from-emerald-800 hover:to-emerald-900 text-white px-8 py-6 text-lg font-bold rounded-xl transition-all transform hover:scale-105 shadow-2xl border-2 border-emerald-600"
               >
                 <Plane className="w-5 h-5 mr-2" />
                 Start Your Journey
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button 
+                onClick={handleBrowseMarketplace}
                 variant="outline" 
                 className="border-2 border-white/50 bg-white/20 backdrop-blur-md text-white hover:bg-white/30 px-8 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
               >
@@ -148,13 +171,13 @@ const HeroSection = () => {
               <CardContent className="p-8">
                 <div className="space-y-6">
                   <div className="text-center space-y-2">
-                    <h3 className="text-2xl font-bold text-gray-900">Book Your Package</h3>
-                    <p className="text-gray-600">Start your spiritual journey today</p>
+                    <h3 className="text-2xl font-bold text-gray-900">Find Your Package</h3>
+                    <p className="text-gray-600">Connect with certified agents</p>
                   </div>
 
                   {/* Enhanced Package Selection */}
                   <div className="space-y-4">
-                    <label className="text-sm font-semibold text-gray-700">Select Package</label>
+                    <label className="text-sm font-semibold text-gray-700">Select Package Type</label>
                     <div className="space-y-3">
                       {packages.map((pkg) => (
                         <div
@@ -208,7 +231,7 @@ const HeroSection = () => {
                   {/* Form Fields */}
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">Travel Date</label>
+                      <label className="text-sm font-semibold text-gray-700">Preferred Travel Date</label>
                       <div className="relative">
                         <input
                           type="date"
@@ -221,7 +244,7 @@ const HeroSection = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">Number of Guests</label>
+                      <label className="text-sm font-semibold text-gray-700">Number of Travelers</label>
                       <div className="flex items-center space-x-4 p-4 border-2 border-gray-300 rounded-xl bg-white/80 backdrop-blur-sm">
                         <Users className="w-5 h-5 text-gray-400" />
                         <select
@@ -230,7 +253,7 @@ const HeroSection = () => {
                           onChange={(e) => setSelectedGuests(Number(e.target.value))}
                         >
                           {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-                            <option key={num} value={num}>{num} Guest{num > 1 ? 's' : ''}</option>
+                            <option key={num} value={num}>{num} Traveler{num > 1 ? 's' : ''}</option>
                           ))}
                         </select>
                       </div>
@@ -239,8 +262,8 @@ const HeroSection = () => {
 
                   {/* Enhanced Search Button */}
                   <Button 
-                    onClick={handleBooking}
-                    className="w-full bg-gradient-islamic hover:opacity-90 text-white py-6 text-lg font-semibold rounded-xl transition-all transform hover:scale-105 shadow-lg"
+                    onClick={handleSearchPackages}
+                    className="w-full bg-gradient-to-r from-emerald-700 to-emerald-800 hover:from-emerald-800 hover:to-emerald-900 text-white py-6 text-lg font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg border-2 border-emerald-600"
                   >
                     <Plane className="w-5 h-5 mr-2" />
                     {selectedPackage === 'hajj' && !isSubscribed ? 'Find Hajj Agents' : 'Search Packages'}

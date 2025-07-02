@@ -36,7 +36,7 @@ const Index = () => {
       </section>
 
       {/* Agent Marketplace Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
+      <section id="agent-marketplace" className="py-20 bg-gradient-to-br from-gray-50 to-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">

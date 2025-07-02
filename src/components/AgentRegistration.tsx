@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,9 +34,24 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
   const { toast } = useToast();
 
   const plans = [
-    { id: 'basic', name: 'Basic Plan', price: { USD: 199, EUR: 180, NGN: 320000 }, features: ['Basic listing', 'Customer support', 'Basic analytics'] },
-    { id: 'premium', name: 'Premium Plan', price: { USD: 399, EUR: 360, NGN: 640000 }, features: ['Priority listing', 'Advanced analytics', 'Marketing tools', 'Priority support'] },
-    { id: 'enterprise', name: 'Enterprise Plan', price: { USD: 699, EUR: 630, NGN: 1120000 }, features: ['Top listing', 'Full analytics suite', 'Custom branding', 'Dedicated support', 'API access'] }
+    { 
+      id: 'basic', 
+      name: 'Basic Plan', 
+      price: { USD: 199, EUR: 180, NGN: 320000 }, 
+      features: ['Basic listing', 'Customer support', 'Basic analytics'] 
+    },
+    { 
+      id: 'premium', 
+      name: 'Premium Plan', 
+      price: { USD: 399, EUR: 360, NGN: 640000 }, 
+      features: ['Priority listing', 'Advanced analytics', 'Marketing tools', 'Priority support'] 
+    },
+    { 
+      id: 'enterprise', 
+      name: 'Enterprise Plan', 
+      price: { USD: 699, EUR: 630, NGN: 1120000 }, 
+      features: ['Top listing', 'Full analytics suite', 'Custom branding', 'Dedicated support', 'API access'] 
+    }
   ];
 
   const currencies = [
@@ -51,7 +67,7 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
     { label: 'Oman', value: 'OM' },
     { label: 'Kuwait', value: 'KW' },
     { label: 'Bahrain', value: 'BH' },
-    { label: 'Nigeria', value: 'NG' },
+    { label: 'Nigeria', value: 'NG' }
   ];
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {

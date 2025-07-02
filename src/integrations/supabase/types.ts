@@ -9,6 +9,261 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agent_subscriptions: {
+        Row: {
+          created_at: string | null
+          end_date: string | null
+          id: string
+          payment_reference: string | null
+          plan_id: string | null
+          start_date: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          payment_reference?: string | null
+          plan_id?: string | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          payment_reference?: string | null
+          plan_id?: string | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          agent_id: string | null
+          booking_date: string | null
+          created_at: string | null
+          id: string
+          package_id: string | null
+          payment_status: string | null
+          pilgrim_id: string | null
+          status: string | null
+          total_amount: number | null
+          travel_date: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          booking_date?: string | null
+          created_at?: string | null
+          id?: string
+          package_id?: string | null
+          payment_status?: string | null
+          pilgrim_id?: string | null
+          status?: string | null
+          total_amount?: number | null
+          travel_date?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          booking_date?: string | null
+          created_at?: string | null
+          id?: string
+          package_id?: string | null
+          payment_status?: string | null
+          pilgrim_id?: string | null
+          status?: string | null
+          total_amount?: number | null
+          travel_date?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          message_type: string | null
+          room_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          message_type?: string | null
+          room_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          message_type?: string | null
+          room_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_rooms: {
+        Row: {
+          country: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          language: string | null
+          name: string
+          room_type: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          language?: string | null
+          name: string
+          room_type?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          language?: string | null
+          name?: string
+          room_type?: string | null
+        }
+        Relationships: []
+      }
+      daily_content: {
+        Row: {
+          arabic_text: string
+          content_type: string
+          created_at: string | null
+          english_translation: string | null
+          id: string
+          is_featured: boolean | null
+          post_date: string | null
+          posted_by: string | null
+          reference: string | null
+          title: string | null
+          urdu_translation: string | null
+        }
+        Insert: {
+          arabic_text: string
+          content_type: string
+          created_at?: string | null
+          english_translation?: string | null
+          id?: string
+          is_featured?: boolean | null
+          post_date?: string | null
+          posted_by?: string | null
+          reference?: string | null
+          title?: string | null
+          urdu_translation?: string | null
+        }
+        Update: {
+          arabic_text?: string
+          content_type?: string
+          created_at?: string | null
+          english_translation?: string | null
+          id?: string
+          is_featured?: boolean | null
+          post_date?: string | null
+          posted_by?: string | null
+          reference?: string | null
+          title?: string | null
+          urdu_translation?: string | null
+        }
+        Relationships: []
+      }
+      packages: {
+        Row: {
+          agent_id: string | null
+          capacity: number | null
+          country: string | null
+          created_at: string | null
+          description: string | null
+          duration_days: number | null
+          features: string[] | null
+          id: string
+          is_active: boolean | null
+          price: number
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          capacity?: number | null
+          country?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_days?: number | null
+          features?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          price: number
+          title: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          capacity?: number | null
+          country?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_days?: number | null
+          features?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          price?: number
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           agent_code: string | null
@@ -81,6 +336,42 @@ export type Database = {
           updated_at?: string | null
           user_type?: string
           username?: string
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          duration_months: number
+          features: string[] | null
+          id: string
+          is_active: boolean | null
+          name: string
+          price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          duration_months?: number
+          features?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          price: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          duration_months?: number
+          features?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price?: number
+          updated_at?: string | null
         }
         Relationships: []
       }

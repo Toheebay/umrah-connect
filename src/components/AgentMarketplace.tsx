@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
-import { Star, MapPin, Users, Calendar, Filter, Search, Heart, Share2, MessageCircle, Crown, CheckCircle } from 'lucide-react';
+import { Star, MapPin, Users, Calendar, Filter, Search, Heart, Share2, MessageCircle, Crown, CheckCircle, Phone, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import SocialShare from '@/components/SocialShare';
 
 const AgentMarketplace = () => {
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -24,7 +24,13 @@ const AgentMarketplace = () => {
       premium: true,
       packages: 15,
       yearsExperience: 25,
-      clientsServed: 50000
+      clientsServed: 50000,
+      contact: {
+        phone: '+966-11-234-5678',
+        email: 'info@alharamaintours.com',
+        whatsapp: '+966-50-123-4567',
+        address: 'King Fahd Road, Riyadh 12345, Saudi Arabia'
+      }
     },
     {
       id: 2,
@@ -41,7 +47,13 @@ const AgentMarketplace = () => {
       premium: false,
       packages: 8,
       yearsExperience: 15,
-      clientsServed: 25000
+      clientsServed: 25000,
+      contact: {
+        phone: '+90-212-345-6789',
+        email: 'contact@madinahexpress.com',
+        whatsapp: '+90-555-123-4567',
+        address: 'Fatih District, Istanbul 34122, Turkey'
+      }
     },
     {
       id: 3,
@@ -58,7 +70,13 @@ const AgentMarketplace = () => {
       premium: true,
       packages: 12,
       yearsExperience: 20,
-      clientsServed: 30000
+      clientsServed: 30000,
+      contact: {
+        phone: '+92-21-234-5678',
+        email: 'info@zamzamfamily.com',
+        whatsapp: '+92-300-123-4567',
+        address: 'Gulshan-e-Iqbal, Karachi 75300, Pakistan'
+      }
     },
     {
       id: 4,
@@ -75,7 +93,13 @@ const AgentMarketplace = () => {
       premium: true,
       packages: 20,
       yearsExperience: 30,
-      clientsServed: 75000
+      clientsServed: 75000,
+      contact: {
+        phone: '+44-20-7123-4567',
+        email: 'bookings@makkahgateway.co.uk',
+        whatsapp: '+44-7700-123456',
+        address: 'Edgware Road, London W2 1DZ, UK'
+      }
     }
   ];
 
@@ -101,6 +125,12 @@ const AgentMarketplace = () => {
     
     return matchesFilter && matchesSearch;
   });
+
+  const handleDirectChat = (agent: typeof agents[0]) => {
+    const message = `Hello! I'm interested in your ${agent.speciality} services. Could you please provide more information?`;
+    const whatsappUrl = `https://wa.me/${agent.contact.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -222,6 +252,29 @@ const AgentMarketplace = () => {
                     {/* Description */}
                     <p className="text-gray-600 leading-relaxed">{agent.description}</p>
 
+                    {/* Contact Information */}
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h4 className="font-semibold text-gray-900 mb-3">Contact Information</h4>
+                      <div className="grid md:grid-cols-2 gap-3 text-sm">
+                        <div className="flex items-center space-x-2">
+                          <Phone className="w-4 h-4 text-emerald-600" />
+                          <a href={`tel:${agent.contact.phone}`} className="text-gray-700 hover:text-emerald-600">
+                            {agent.contact.phone}
+                          </a>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Mail className="w-4 h-4 text-emerald-600" />
+                          <a href={`mailto:${agent.contact.email}`} className="text-gray-700 hover:text-emerald-600">
+                            {agent.contact.email}
+                          </a>
+                        </div>
+                        <div className="md:col-span-2 flex items-start space-x-2">
+                          <MapPin className="w-4 h-4 text-emerald-600 mt-0.5" />
+                          <span className="text-gray-700">{agent.contact.address}</span>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Features */}
                     <div className="flex flex-wrap gap-2">
                       {agent.features.map((feature, index) => (
@@ -238,18 +291,24 @@ const AgentMarketplace = () => {
                           <Heart className="w-4 h-4 mr-1" />
                           Save
                         </Button>
-                        <Button size="sm" variant="outline" className="border-emerald-300 text-emerald-700 hover:bg-emerald-50">
-                          <Share2 className="w-4 h-4 mr-1" />
-                          Share
-                        </Button>
+                        <SocialShare 
+                          title={agent.name}
+                          description={agent.description}
+                          url={`${window.location.origin}/agent/${agent.id}`}
+                        />
                       </div>
                       <div className="flex space-x-3">
-                        <Button size="sm" variant="outline" className="border-emerald-300 text-emerald-700 hover:bg-emerald-50">
-                          View Packages
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                          onClick={() => handleDirectChat(agent)}
+                        >
+                          <MessageCircle className="w-4 h-4 mr-1" />
+                          Direct Chat
                         </Button>
                         <Button size="sm" className="bg-gradient-islamic hover:opacity-90 text-white">
-                          <MessageCircle className="w-4 h-4 mr-1" />
-                          Contact Agent
+                          View Packages
                         </Button>
                       </div>
                     </div>

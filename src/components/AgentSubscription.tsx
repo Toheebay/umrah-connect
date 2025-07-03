@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Check, Crown, Star, Zap, Shield, Users, TrendingUp, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,7 @@ const AgentSubscription = () => {
     {
       name: 'Starter',
       icon: Star,
-      price: { monthly: 49, yearly: 490 },
+      price: { monthly: 50, yearly: 500 },
       description: 'Perfect for new agents starting their journey',
       features: [
         'Up to 50 bookings per month',
@@ -27,7 +26,7 @@ const AgentSubscription = () => {
     {
       name: 'Professional',
       icon: Crown,
-      price: { monthly: 99, yearly: 990 },
+      price: { monthly: 100, yearly: 1000 },
       description: 'Most popular choice for growing agencies',
       features: [
         'Unlimited bookings',
@@ -46,7 +45,7 @@ const AgentSubscription = () => {
     {
       name: 'Enterprise',
       icon: Award,
-      price: { monthly: 199, yearly: 1990 },
+      price: { monthly: 250, yearly: 2500 },
       description: 'For large agencies and tour operators',
       features: [
         'Everything in Professional',
@@ -140,7 +139,7 @@ const AgentSubscription = () => {
             >
               Yearly
               <span className="ml-2 bg-yellow-500 text-gray-900 px-2 py-1 rounded-full text-xs font-bold">
-                Save 20%
+                Save 17%
               </span>
             </button>
           </div>

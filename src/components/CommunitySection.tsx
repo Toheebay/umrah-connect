@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { MessageCircle, Users, Globe, Heart, Star, Send, ThumbsUp, Share2, MoreHorizontal, Filter, Search, UserPlus, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ interface Post {
   likes_count: number;
   comments_count: number;
   user_id: string;
+  expires_at?: string;
 }
 
 interface Comment {
@@ -56,6 +56,13 @@ const CommunitySection = () => {
   useEffect(() => {
     checkUser();
     fetchPosts();
+    
+    // Set up auto-cleanup of expired posts every minute
+    const cleanupInterval = setInterval(() => {
+      cleanupExpiredPosts();
+    }, 60000); // Check every minute
+
+    return () => clearInterval(cleanupInterval);
   }, []);
 
   const checkUser = async () => {
@@ -76,7 +83,33 @@ const CommunitySection = () => {
     if (error) {
       console.error('Error fetching posts:', error);
     } else {
-      setPosts(data || []);
+      // Filter out expired posts on the client side as well
+      const now = new Date();
+      const validPosts = (data || []).filter(post => {
+        if (post.expires_at) {
+          return new Date(post.expires_at) > now;
+        }
+        return true; // Keep posts without expiration (agent posts)
+      });
+      setPosts(validPosts);
+    }
+  };
+
+  const cleanupExpiredPosts = async () => {
+    const now = new Date().toISOString();
+    
+    // Delete expired posts from database
+    const { error } = await supabase
+      .from('community_posts')
+      .delete()
+      .lt('expires_at', now)
+      .not('expires_at', 'is', null);
+
+    if (error) {
+      console.error('Error cleaning up expired posts:', error);
+    } else {
+      // Refresh posts after cleanup
+      fetchPosts();
     }
   };
 
@@ -115,13 +148,26 @@ const CommunitySection = () => {
 
     console.log('Publishing post:', newPost);
 
+    // Check if user is an agent by looking for agent profile
+    const { data: agentProfile } = await supabase
+      .from('agent_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    const isAgent = !!agentProfile;
+    
+    // For regular users, set expiration to 24 hours from now
+    const expiresAt = !isAgent ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : null;
+
     const { error } = await supabase
       .from('community_posts')
       .insert({
         title: newPost.title,
         content: newPost.content,
         category: newPost.category,
-        user_id: user.id
+        user_id: user.id,
+        expires_at: expiresAt
       });
 
     if (error) {
@@ -134,7 +180,9 @@ const CommunitySection = () => {
     } else {
       toast({
         title: "Post Published!",
-        description: "Your sacred journey has been shared with the community.",
+        description: isAgent 
+          ? "Your post has been shared with the community permanently."
+          : "Your post has been shared and will be visible for 24 hours.",
       });
       setNewPost({ title: '', content: '', category: 'experience' });
       setShowPostModal(false);
@@ -449,6 +497,11 @@ const CommunitySection = () => {
                             <div className="font-bold text-gray-900">{getUserDisplayName(post.user_id)}</div>
                             <div className="text-sm text-gray-500">
                               {new Date(post.created_at).toLocaleDateString()}
+                              {post.expires_at && (
+                                <span className="ml-2 text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
+                                  Expires in {Math.ceil((new Date(post.expires_at).getTime() - Date.now()) / (1000 * 60 * 60))}h
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -609,7 +662,7 @@ const CommunitySection = () => {
 
               <div className="flex justify-between items-center">
                 <div className="text-sm text-gray-500">
-                  Your post will be permanently saved and visible to the community
+                  Your post will be visible for 24 hours (agents' posts are permanent)
                 </div>
                 <div className="flex space-x-3">
                   <Button

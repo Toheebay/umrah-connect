@@ -267,6 +267,7 @@ export type Database = {
           comments_count: number | null
           content: string
           created_at: string
+          expires_at: string | null
           id: string
           is_active: boolean
           likes_count: number | null
@@ -279,6 +280,7 @@ export type Database = {
           comments_count?: number | null
           content: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           is_active?: boolean
           likes_count?: number | null
@@ -291,6 +293,7 @@ export type Database = {
           comments_count?: number | null
           content?: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           is_active?: boolean
           likes_count?: number | null
@@ -577,7 +580,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      delete_expired_posts: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

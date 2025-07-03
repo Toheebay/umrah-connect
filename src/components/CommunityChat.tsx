@@ -1,86 +1,45 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Users, Heart, Share2, MessageCircle, Clock, MapPin, Wifi, WifiOff, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+interface Message {
+  id: string;
+  user: string;
+  avatar: string;
+  country: string;
+  location: string;
+  message: string;
+  time: string;
+  likes: number;
+  replies: number;
+  isOnline: boolean;
+  user_id?: string;
+  created_at?: string;
+}
+
+interface OnlineUser {
+  name: string;
+  avatar: string;
+  country: string;
+  location: string;
+  isOnline: boolean;
+  user_id?: string;
+  last_seen?: string;
+}
 
 const CommunityChat = () => {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      user: 'Ahmed Al-Rashid',
-      avatar: '👨‍💼',
-      country: '🇸🇦',
-      location: 'Riyadh, Saudi Arabia',
-      message: 'Assalamu alaikum everyone! Just completed my Hajj journey. What an incredible experience! The organization was perfect.',
-      time: '2 minutes ago',
-      likes: 12,
-      replies: 3,
-      isOnline: true
-    },
-    {
-      id: 2,
-      user: 'Fatima Hassan',
-      avatar: '👩‍💼',
-      country: '🇪🇬',
-      location: 'Cairo, Egypt',
-      message: 'MashAllah brother Ahmed! Could you share which agent you used? I\'m planning for next year InshaAllah.',
-      time: '5 minutes ago',
-      likes: 8,
-      replies: 1,
-      isOnline: true
-    },
-    {
-      id: 3,
-      user: 'Omar Bin Said',
-      avatar: '👨‍🦲',
-      country: '🇦🇪',
-      location: 'Dubai, UAE',
-      message: 'For those planning Umrah, I highly recommend booking early. The prices are much better and you get better accommodation options.',
-      time: '10 minutes ago',
-      likes: 15,
-      replies: 5,
-      isOnline: false
-    },
-    {
-      id: 4,
-      user: 'Aisha Malik',
-      avatar: '👩‍🦱',
-      country: '🇵🇰',
-      location: 'Karachi, Pakistan',
-      message: 'SubhanAllah! I\'m so excited for my first Umrah next month. Any tips for first-time pilgrims?',
-      time: '15 minutes ago',
-      likes: 6,
-      replies: 8,
-      isOnline: true
-    },
-    {
-      id: 5,
-      user: 'Ibrahim Khan',
-      avatar: '👨‍🧔',
-      country: '🇧🇩',
-      location: 'Dhaka, Bangladesh',
-      message: 'Remember to make lots of dua for the Ummah when you\'re there. May Allah accept all our pilgrimages. Ameen!',
-      time: '20 minutes ago',
-      likes: 25,
-      replies: 12,
-      isOnline: true
-    }
-  ]);
-
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [userLocation, setUserLocation] = useState('');
-  const [onlineUsers] = useState([
-    { name: 'Ahmed Al-Rashid', avatar: '👨‍💼', country: '🇸🇦', location: 'Riyadh, Saudi Arabia', isOnline: true },
-    { name: 'Fatima Hassan', avatar: '👩‍💼', country: '🇪🇬', location: 'Cairo, Egypt', isOnline: true },
-    { name: 'Aisha Malik', avatar: '👩‍🦱', country: '🇵🇰', location: 'Karachi, Pakistan', isOnline: true },
-    { name: 'Ibrahim Khan', avatar: '👨‍🧔', country: '🇧🇩', location: 'Dhaka, Bangladesh', isOnline: true },
-    { name: 'Yusuf Ahmed', avatar: '👨‍💻', country: '🇮🇩', location: 'Jakarta, Indonesia', isOnline: true },
-    { name: 'Khadija Omar', avatar: '👩‍🎓', country: '🇲🇦', location: 'Casablanca, Morocco', isOnline: false }
-  ]);
-
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -89,6 +48,15 @@ const CommunityChat = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Get current user
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+    };
+    getCurrentUser();
+  }, []);
 
   // Detect user location
   useEffect(() => {
@@ -103,7 +71,12 @@ const CommunityChat = () => {
                 'London, UK', 
                 'New York, USA',
                 'Dubai, UAE',
-                'Istanbul, Turkey'
+                'Istanbul, Turkey',
+                'Cairo, Egypt',
+                'Riyadh, Saudi Arabia',
+                'Karachi, Pakistan',
+                'Dhaka, Bangladesh',
+                'Jakarta, Indonesia'
               ];
               const randomLocation = locations[Math.floor(Math.random() * locations.length)];
               setUserLocation(randomLocation);
@@ -121,26 +94,231 @@ const CommunityChat = () => {
     detectLocation();
   }, []);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      const message = {
-        id: messages.length + 1,
-        user: 'You',
-        avatar: '👤',
-        country: '🌍',
-        location: userLocation || 'Unknown Location',
-        message: newMessage,
-        time: 'Just now',
-        likes: 0,
-        replies: 0,
+  // Load initial messages from Supabase
+  useEffect(() => {
+    const loadMessages = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('chat_messages')
+          .select('*')
+          .eq('room_id', 'global-chat')
+          .order('created_at', { ascending: true })
+          .limit(50);
+
+        if (error) {
+          console.error('Error loading messages:', error);
+          // Load sample messages if database is empty
+          loadSampleMessages();
+        } else if (data && data.length > 0) {
+          const formattedMessages = data.map(msg => ({
+            id: msg.id,
+            user: `User ${msg.user_id?.slice(0, 8)}`,
+            avatar: getRandomAvatar(),
+            country: getRandomCountryFlag(),
+            location: getRandomLocation(),
+            message: msg.message,
+            time: formatTime(msg.created_at),
+            likes: 0,
+            replies: 0,
+            isOnline: true,
+            user_id: msg.user_id,
+            created_at: msg.created_at
+          }));
+          setMessages(formattedMessages);
+        } else {
+          loadSampleMessages();
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        loadSampleMessages();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadMessages();
+  }, []);
+
+  // Real-time subscription for new messages
+  useEffect(() => {
+    const channel = supabase
+      .channel('global-chat-messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: 'room_id=eq.global-chat'
+        },
+        (payload) => {
+          console.log('New message received:', payload);
+          const newMsg = payload.new as any;
+          const formattedMessage: Message = {
+            id: newMsg.id,
+            user: newMsg.user_id === currentUser?.id ? 'You' : `User ${newMsg.user_id?.slice(0, 8)}`,
+            avatar: getRandomAvatar(),
+            country: getRandomCountryFlag(),
+            location: getRandomLocation(),
+            message: newMsg.message,
+            time: 'Just now',
+            likes: 0,
+            replies: 0,
+            isOnline: true,
+            user_id: newMsg.user_id,
+            created_at: newMsg.created_at
+          };
+          
+          setMessages(prev => [...prev, formattedMessage]);
+          
+          if (newMsg.user_id !== currentUser?.id) {
+            toast({
+              title: "New message",
+              description: `${formattedMessage.user}: ${newMsg.message.slice(0, 50)}...`,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUser, toast]);
+
+  // Initialize global chat room
+  useEffect(() => {
+    const initializeChatRoom = async () => {
+      try {
+        // Check if global chat room exists, if not create it
+        const { data: existingRoom } = await supabase
+          .from('chat_rooms')
+          .select('*')
+          .eq('id', 'global-chat')
+          .single();
+
+        if (!existingRoom) {
+          const { error } = await supabase
+            .from('chat_rooms')
+            .insert({
+              id: 'global-chat',
+              name: 'Global Community Chat',
+              description: 'Connect with Muslims worldwide',
+              room_type: 'public',
+              is_active: true,
+              created_by: currentUser?.id
+            });
+
+          if (error) {
+            console.error('Error creating chat room:', error);
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing chat room:', error);
+      }
+    };
+
+    if (currentUser) {
+      initializeChatRoom();
+    }
+  }, [currentUser]);
+
+  const loadSampleMessages = () => {
+    const sampleMessages: Message[] = [
+      {
+        id: '1',
+        user: 'Ahmed Al-Rashid',
+        avatar: '👨‍💼',
+        country: '🇸🇦',
+        location: 'Riyadh, Saudi Arabia',
+        message: 'Assalamu alaikum everyone! Just completed my Hajj journey. What an incredible experience! The organization was perfect.',
+        time: '2 minutes ago',
+        likes: 12,
+        replies: 3,
         isOnline: true
-      };
-      setMessages([...messages, message]);
+      },
+      {
+        id: '2',
+        user: 'Fatima Hassan',
+        avatar: '👩‍💼',
+        country: '🇪🇬',
+        location: 'Cairo, Egypt',
+        message: 'MashAllah brother Ahmed! Could you share which agent you used? I\'m planning for next year InshaAllah.',
+        time: '5 minutes ago',
+        likes: 8,
+        replies: 1,
+        isOnline: true
+      },
+      {
+        id: '3',
+        user: 'Omar Bin Said',
+        avatar: '👨‍🦲',
+        country: '🇦🇪',
+        location: 'Dubai, UAE',
+        message: 'For those planning Umrah, I highly recommend booking early. The prices are much better and you get better accommodation options.',
+        time: '10 minutes ago',
+        likes: 15,
+        replies: 5,
+        isOnline: false
+      }
+    ];
+    setMessages(sampleMessages);
+    
+    setOnlineUsers([
+      { name: 'Ahmed Al-Rashid', avatar: '👨‍💼', country: '🇸🇦', location: 'Riyadh, Saudi Arabia', isOnline: true },
+      { name: 'Fatima Hassan', avatar: '👩‍💼', country: '🇪🇬', location: 'Cairo, Egypt', isOnline: true },
+      { name: 'Omar Bin Said', avatar: '👨‍🦲', country: '🇦🇪', location: 'Dubai, UAE', isOnline: false },
+      { name: 'Aisha Malik', avatar: '👩‍🦱', country: '🇵🇰', location: 'Karachi, Pakistan', isOnline: true },
+      { name: 'Ibrahim Khan', avatar: '👨‍🧔', country: '🇧🇩', location: 'Dhaka, Bangladesh', isOnline: true },
+      { name: 'Khadija Omar', avatar: '👩‍🎓', country: '🇲🇦', location: 'Casablanca, Morocco', isOnline: false }
+    ]);
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return;
+    
+    if (!currentUser) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to send messages",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Insert message into Supabase
+      const { error } = await supabase
+        .from('chat_messages')
+        .insert({
+          message: newMessage,
+          user_id: currentUser.id,
+          room_id: 'global-chat',
+          message_type: 'text'
+        });
+
+      if (error) {
+        console.error('Error sending message:', error);
+        toast({
+          title: "Error",
+          description: "Failed to send message. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       setNewMessage('');
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
-  const handleLike = (messageId: number) => {
+  const handleLike = (messageId: string) => {
     setMessages(messages.map(msg => 
       msg.id === messageId 
         ? { ...msg, likes: msg.likes + 1 }
@@ -148,7 +326,55 @@ const CommunityChat = () => {
     ));
   };
 
+  // Helper functions
+  const getRandomAvatar = () => {
+    const avatars = ['👨‍💼', '👩‍💼', '👨‍🦲', '👩‍🦱', '👨‍🧔', '👩‍🎓', '👨‍💻', '👩‍⚕️'];
+    return avatars[Math.floor(Math.random() * avatars.length)];
+  };
+
+  const getRandomCountryFlag = () => {
+    const flags = ['🇸🇦', '🇪🇬', '🇦🇪', '🇵🇰', '🇧🇩', '🇲🇦', '🇮🇩', '🇳🇬', '🇹🇷', '🇮🇳'];
+    return flags[Math.floor(Math.random() * flags.length)];
+  };
+
+  const getRandomLocation = () => {
+    const locations = [
+      'Riyadh, Saudi Arabia', 'Cairo, Egypt', 'Dubai, UAE', 'Karachi, Pakistan',
+      'Dhaka, Bangladesh', 'Casablanca, Morocco', 'Jakarta, Indonesia', 
+      'Lagos, Nigeria', 'Istanbul, Turkey', 'Mumbai, India'
+    ];
+    return locations[Math.floor(Math.random() * locations.length)];
+  };
+
+  const formatTime = (timestamp: string | null) => {
+    if (!timestamp) return 'Just now';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+    if (diffMins < 1440) return `${Math.floor(diffMins / 60)} hours ago`;
+    return `${Math.floor(diffMins / 1440)} days ago`;
+  };
+
   const onlineCount = onlineUsers.filter(user => user.isOnline).length;
+
+  if (isLoading) {
+    return (
+      <div className="max-w-6xl mx-auto grid lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3">
+          <Card className="h-[600px] flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+              <p className="text-gray-500">Connecting to global chat...</p>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto grid lg:grid-cols-4 gap-6">
@@ -158,10 +384,10 @@ const CommunityChat = () => {
           <CardHeader className="border-b">
             <CardTitle className="flex items-center space-x-2">
               <MessageCircle className="w-5 h-5 text-emerald-600" />
-              <span>Community Chat</span>
+              <span>Global Community Chat</span>
               <div className="flex items-center space-x-1 text-sm text-gray-500">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span>{onlineCount} online</span>
+                <span>{onlineCount} online worldwide</span>
               </div>
               {userLocation && (
                 <div className="flex items-center space-x-1 text-xs text-gray-500">
@@ -249,19 +475,21 @@ const CommunityChat = () => {
               <Input
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Share your Hajj & Umrah experience..."
+                placeholder={currentUser ? "Share your Hajj & Umrah experience with the global community..." : "Please sign in to chat"}
                 className="flex-1"
+                disabled={!currentUser}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
               />
               <Button 
                 onClick={handleSendMessage}
+                disabled={!currentUser || !newMessage.trim()}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
                 <Send className="w-4 h-4" />
               </Button>
             </div>
             <p className="text-xs text-gray-500 mt-2 flex items-center space-x-2">
-              <span>Share your experiences, ask questions, and connect with fellow pilgrims</span>
+              <span>Connect with fellow pilgrims worldwide in real-time</span>
               {userLocation && (
                 <span className="flex items-center space-x-1">
                   <span>•</span>
@@ -280,7 +508,7 @@ const CommunityChat = () => {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Users className="w-5 h-5 text-emerald-600" />
-              <span>Members ({onlineUsers.length})</span>
+              <span>Global Members ({onlineUsers.length})</span>
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             </CardTitle>
           </CardHeader>
@@ -335,7 +563,7 @@ const CommunityChat = () => {
                 <span>Global Community</span>
               </h4>
               <p className="text-xs text-blue-700">
-                Connect with Muslims from {onlineUsers.length} different locations worldwide
+                Connect with Muslims from {onlineUsers.length} different locations worldwide in real-time
               </p>
             </div>
           </CardContent>

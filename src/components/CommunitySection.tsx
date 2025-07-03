@@ -15,10 +15,6 @@ interface Post {
   likes_count: number;
   comments_count: number;
   user_id: string;
-  profiles?: {
-    username: string;
-    email: string;
-  };
 }
 
 interface Comment {
@@ -26,10 +22,6 @@ interface Comment {
   content: string;
   created_at: string;
   user_id: string;
-  profiles?: {
-    username: string;
-    email: string;
-  };
 }
 
 const CommunitySection = () => {
@@ -77,10 +69,7 @@ const CommunitySection = () => {
   const fetchPosts = async () => {
     const { data, error } = await supabase
       .from('community_posts')
-      .select(`
-        *,
-        profiles(username, email)
-      `)
+      .select('*')
       .eq('is_active', true)
       .order('created_at', { ascending: false });
 
@@ -94,10 +83,7 @@ const CommunitySection = () => {
   const fetchComments = async (postId: string) => {
     const { data, error } = await supabase
       .from('post_comments')
-      .select(`
-        *,
-        profiles(username, email)
-      `)
+      .select('*')
       .eq('post_id', postId)
       .order('created_at', { ascending: true });
 
@@ -126,6 +112,8 @@ const CommunitySection = () => {
       });
       return;
     }
+
+    console.log('Publishing post:', newPost);
 
     const { error } = await supabase
       .from('community_posts')
@@ -200,6 +188,16 @@ const CommunitySection = () => {
   const confirmJoinCommunity = () => {
     setIsJoined(true);
     setShowJoinModal(false);
+  };
+
+  const getUserDisplayName = (userId: string) => {
+    // For now, we'll use a simple fallback since we don't have profiles table
+    return 'Community Member';
+  };
+
+  const getUserInitial = (userId: string) => {
+    // Simple fallback for user initial
+    return 'M';
   };
 
   if (!isJoined) {
@@ -445,10 +443,10 @@ const CommunitySection = () => {
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-gradient-islamic rounded-full flex items-center justify-center text-white font-bold">
-                            {post.profiles?.username?.charAt(0).toUpperCase() || 'U'}
+                            {getUserInitial(post.user_id)}
                           </div>
                           <div>
-                            <div className="font-bold text-gray-900">{post.profiles?.username || 'Anonymous'}</div>
+                            <div className="font-bold text-gray-900">{getUserDisplayName(post.user_id)}</div>
                             <div className="text-sm text-gray-500">
                               {new Date(post.created_at).toLocaleDateString()}
                             </div>
@@ -495,10 +493,10 @@ const CommunitySection = () => {
                               <div key={comment.id} className="bg-gray-50 p-3 rounded-lg">
                                 <div className="flex items-center space-x-2 mb-1">
                                   <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                                    {comment.profiles?.username?.charAt(0).toUpperCase() || 'U'}
+                                    {getUserInitial(comment.user_id)}
                                   </div>
                                   <span className="text-sm font-medium text-gray-900">
-                                    {comment.profiles?.username || 'Anonymous'}
+                                    {getUserDisplayName(comment.user_id)}
                                   </span>
                                   <span className="text-xs text-gray-500">
                                     {new Date(comment.created_at).toLocaleDateString()}

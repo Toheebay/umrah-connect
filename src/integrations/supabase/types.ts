@@ -9,6 +9,93 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agent_profiles: {
+        Row: {
+          agent_name: string
+          company_name: string | null
+          country: string | null
+          cover_image_url: string | null
+          created_at: string
+          description: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          languages_spoken: string[] | null
+          license_number: string | null
+          location: string | null
+          phone: string | null
+          profile_image_url: string | null
+          rating: number | null
+          services_offered: string[] | null
+          social_media: Json | null
+          specialization: string[] | null
+          total_clients: number | null
+          total_reviews: number | null
+          updated_at: string
+          user_id: string
+          website_url: string | null
+          whatsapp: string | null
+          years_experience: number | null
+        }
+        Insert: {
+          agent_name: string
+          company_name?: string | null
+          country?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          languages_spoken?: string[] | null
+          license_number?: string | null
+          location?: string | null
+          phone?: string | null
+          profile_image_url?: string | null
+          rating?: number | null
+          services_offered?: string[] | null
+          social_media?: Json | null
+          specialization?: string[] | null
+          total_clients?: number | null
+          total_reviews?: number | null
+          updated_at?: string
+          user_id: string
+          website_url?: string | null
+          whatsapp?: string | null
+          years_experience?: number | null
+        }
+        Update: {
+          agent_name?: string
+          company_name?: string | null
+          country?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          languages_spoken?: string[] | null
+          license_number?: string | null
+          location?: string | null
+          phone?: string | null
+          profile_image_url?: string | null
+          rating?: number | null
+          services_offered?: string[] | null
+          social_media?: Json | null
+          specialization?: string[] | null
+          total_clients?: number | null
+          total_reviews?: number | null
+          updated_at?: string
+          user_id?: string
+          website_url?: string | null
+          whatsapp?: string | null
+          years_experience?: number | null
+        }
+        Relationships: []
+      }
       agent_subscriptions: {
         Row: {
           created_at: string | null
@@ -174,6 +261,45 @@ export type Database = {
         }
         Relationships: []
       }
+      community_posts: {
+        Row: {
+          category: string
+          comments_count: number | null
+          content: string
+          created_at: string
+          id: string
+          is_active: boolean
+          likes_count: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          comments_count?: number | null
+          content: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          likes_count?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          comments_count?: number | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          likes_count?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_content: {
         Row: {
           arabic_text: string
@@ -308,6 +434,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      post_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

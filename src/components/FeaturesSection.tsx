@@ -59,24 +59,6 @@ const FeaturesSection = () => {
   return (
     <section className="py-20 bg-gradient-to-br from-gray-50 to-emerald-50">
       <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center space-x-2 bg-emerald-100 text-emerald-800 px-6 py-3 rounded-full text-sm font-medium mb-6">
-            <Star className="w-4 h-4" />
-            <span>Why Choose UmrahConnect</span>
-          </div>
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-            Everything You Need for Your
-            <span className="block bg-gradient-islamic bg-clip-text text-transparent">
-              Sacred Journey
-            </span>
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Our comprehensive platform provides all the tools and support you need 
-            for a seamless Hajj or Umrah experience.
-          </p>
-        </div>
-
         {/* Features Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
           {features.map((feature, index) => (

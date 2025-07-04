@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Check, Crown, Star, Zap, Shield, Users, TrendingUp, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ const AgentSubscription = () => {
     {
       name: 'Basic',
       icon: Star,
-      price: { monthly: 10, yearly: 100 },
+      price: { monthly: 5, yearly: 50 },
       description: 'Perfect for new agents starting their journey',
       features: [
         'Up to 50 bookings per month',
@@ -26,7 +27,7 @@ const AgentSubscription = () => {
     {
       name: 'Premium',
       icon: Crown,
-      price: { monthly: 15, yearly: 150 },
+      price: { monthly: 10, yearly: 100 },
       description: 'Most popular choice for growing agencies',
       features: [
         'Unlimited bookings',
@@ -45,7 +46,7 @@ const AgentSubscription = () => {
     {
       name: 'Enterprise',
       icon: Award,
-      price: { monthly: 18, yearly: 180 },
+      price: { monthly: 20, yearly: 200 },
       description: 'For large agencies and tour operators',
       features: [
         'Everything in Premium',

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Users, Heart, Share2, MessageCircle, Clock, MapPin, Wifi, WifiOff, Globe, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import ChatNavigator from './ChatNavigator';
 
 interface Message {
   id: string;
@@ -43,10 +43,27 @@ const CommunityChat = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [anonymousUser, setAnonymousUser] = useState<{name: string, avatar: string, country: string, location: string} | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const scrollToTop = () => {
+    messagesContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const scrollUp = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollBy({ top: -200, behavior: "smooth" });
+    }
+  };
+
+  const scrollDown = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollBy({ top: 200, behavior: "smooth" });
+    }
   };
 
   useEffect(() => {
@@ -61,45 +78,80 @@ const CommunityChat = () => {
       
       // If no authenticated user, create anonymous user profile
       if (!user) {
-        const anonymousProfile = {
-          name: `Guest${Math.floor(Math.random() * 10000)}`,
-          avatar: getRandomAvatar(),
-          country: getRandomCountryFlag(),
-          location: getRandomLocation()
-        };
-        setAnonymousUser(anonymousProfile);
-        localStorage.setItem('anonymousUser', JSON.stringify(anonymousProfile));
+        const savedAnonymousUser = localStorage.getItem('anonymousUser');
+        const guestLocation = localStorage.getItem('guestLocation');
+        
+        if (savedAnonymousUser) {
+          const parsedUser = JSON.parse(savedAnonymousUser);
+          // Update location if we have a newer one
+          if (guestLocation && guestLocation !== parsedUser.location) {
+            parsedUser.location = guestLocation;
+            localStorage.setItem('anonymousUser', JSON.stringify(parsedUser));
+          }
+          setAnonymousUser(parsedUser);
+        } else {
+          const anonymousProfile = {
+            name: `Guest${Math.floor(Math.random() * 10000)}`,
+            avatar: getRandomAvatar(),
+            country: getRandomCountryFlag(),
+            location: guestLocation || getRandomLocation()
+          };
+          setAnonymousUser(anonymousProfile);
+          localStorage.setItem('anonymousUser', JSON.stringify(anonymousProfile));
+        }
       }
     };
-    
-    // Check for existing anonymous user in localStorage
-    const savedAnonymousUser = localStorage.getItem('anonymousUser');
-    if (savedAnonymousUser) {
-      setAnonymousUser(JSON.parse(savedAnonymousUser));
-    }
     
     getCurrentUser();
   }, []);
 
-  // Detect user location
+  // Enhanced location detection
   useEffect(() => {
     const detectLocation = async () => {
       try {
+        // First check if we have a guest location stored
+        const guestLocation = localStorage.getItem('guestLocation');
+        if (guestLocation) {
+          setUserLocation(guestLocation);
+          return;
+        }
+
         if ('geolocation' in navigator) {
           navigator.geolocation.getCurrentPosition(
             async (position) => {
+              try {
+                const { latitude, longitude } = position.coords;
+                const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+                const data = await response.json();
+                const location = `${data.city || data.locality || 'Unknown City'}, ${data.countryName || 'Unknown Country'}`;
+                setUserLocation(location);
+                // Store for future reference
+                localStorage.setItem('guestLocation', location);
+              } catch (error) {
+                console.log('Location API failed, using fallback');
+                const locations = [
+                  'Lagos, Nigeria', 'London, UK', 'New York, USA', 'Dubai, UAE',
+                  'Istanbul, Turkey', 'Cairo, Egypt', 'Riyadh, Saudi Arabia',
+                  'Karachi, Pakistan', 'Dhaka, Bangladesh', 'Jakarta, Indonesia'
+                ];
+                const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+                setUserLocation(randomLocation);
+                localStorage.setItem('guestLocation', randomLocation);
+              }
+            },
+            (error) => {
+              console.log('Geolocation failed, using fallback');
               const locations = [
                 'Lagos, Nigeria', 'London, UK', 'New York, USA', 'Dubai, UAE',
-                'Istanbul, Turkey', 'Cairo, Egypt', 'Riyadh, Saudi Arabia',
-                'Karachi, Pakistan', 'Dhaka, Bangladesh', 'Jakarta, Indonesia'
+                'Istanbul, Turkey', 'Cairo, Egypt', 'Riyadh, Saudi Arabia'
               ];
               const randomLocation = locations[Math.floor(Math.random() * locations.length)];
               setUserLocation(randomLocation);
-            },
-            (error) => {
-              setUserLocation('Location not available');
+              localStorage.setItem('guestLocation', randomLocation);
             }
           );
+        } else {
+          setUserLocation('Location not available');
         }
       } catch (error) {
         setUserLocation('Location not available');
@@ -314,6 +366,11 @@ const CommunityChat = () => {
         
         setMessages(prev => [...prev, anonymousMessage]);
         setNewMessage('');
+        
+        toast({
+          title: "Message sent",
+          description: `Shared from ${anonymousUser.location}`,
+        });
         return;
       }
 
@@ -338,6 +395,10 @@ const CommunityChat = () => {
       }
 
       setNewMessage('');
+      toast({
+        title: "Message sent",
+        description: `Shared from ${userLocation}`,
+      });
     } catch (error) {
       console.error('Error:', error);
       toast({
@@ -408,7 +469,7 @@ const CommunityChat = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto grid lg:grid-cols-4 gap-6">
+    <div className="max-w-6xl mx-auto grid lg:grid-cols-4 gap-6 relative">
       {/* Main Chat Area */}
       <div className="lg:col-span-3">
         <Card className="h-[600px] flex flex-col">
@@ -434,12 +495,18 @@ const CommunityChat = () => {
                 {!currentUser && (
                   <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Guest</span>
                 )}
+                {currentUserInfo.location && (
+                  <span className="text-xs text-emerald-600">from {currentUserInfo.location}</span>
+                )}
               </div>
             )}
           </CardHeader>
 
           {/* Messages */}
-          <CardContent className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-gray-50 to-white">
+          <CardContent 
+            ref={messagesContainerRef}
+            className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-gray-50 to-white"
+          >
             <div className="space-y-4">
               {messages.map((message) => (
                 <div key={message.id} className="flex space-x-3">
@@ -605,15 +672,23 @@ const CommunityChat = () => {
             <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
               <h4 className="font-semibold text-blue-800 mb-2 flex items-center space-x-1">
                 <Globe className="w-4 h-4" />
-                <span>Anonymous Chat</span>
+                <span>Global Reach</span>
               </h4>
               <p className="text-xs text-blue-700">
-                Join instantly as a guest or sign in for a personalized experience. Connect with Muslims worldwide!
+                Your location is shared to show the global nature of our community. Connect with Muslims from around the world!
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Chat Navigator */}
+      <ChatNavigator
+        onScrollToTop={scrollToTop}
+        onScrollToBottom={scrollToBottom}
+        onScrollUp={scrollUp}
+        onScrollDown={scrollDown}
+      />
     </div>
   );
 };

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { MessageCircle, Users, Mail, Lock, User } from 'lucide-react';
+import { MessageCircle, Users, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Auth = () => {
@@ -116,6 +116,10 @@ const Auth = () => {
     }
   };
 
+  const handleGuestAccess = () => {
+    navigate('/community');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-emerald-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -129,12 +133,39 @@ const Auth = () => {
                 {isLogin ? 'Welcome Back' : 'Join Community'}
               </CardTitle>
               <p className="text-gray-600 mt-2">
-                {isLogin ? 'Sign in to connect with fellow pilgrims' : 'Create account to join global chat'}
+                {isLogin ? 'Sign in for a personalized experience' : 'Create account for enhanced features'}
               </p>
             </div>
           </CardHeader>
 
           <CardContent className="space-y-6">
+            {/* Guest Access Option */}
+            <div className="p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-lg border border-emerald-200">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 mb-1">Chat as Guest</h3>
+                  <p className="text-sm text-gray-600">Join instantly without registration</p>
+                </div>
+                <Button
+                  onClick={handleGuestAccess}
+                  variant="outline"
+                  className="ml-4 border-emerald-300 text-emerald-700 hover:bg-emerald-100"
+                >
+                  Continue as Guest
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">Or create an account</span>
+              </div>
+            </div>
+
             <form onSubmit={isLogin ? handleLogin : handleSignup} className="space-y-4">
               {!isLogin && (
                 <div className="space-y-2">
@@ -216,13 +247,13 @@ const Auth = () => {
           <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-gray-200">
             <div className="flex items-center justify-center space-x-2 text-emerald-600 mb-2">
               <Users className="w-4 h-4" />
-              <span className="text-sm font-medium">Global Community Features</span>
+              <span className="text-sm font-medium">Chat Features</span>
             </div>
             <ul className="text-xs text-gray-600 space-y-1">
-              <li>• Connect with Muslims worldwide</li>
-              <li>• Share Hajj & Umrah experiences</li>
-              <li>• Get real-time support and advice</li>
-              <li>• Join location-based discussions</li>
+              <li>• <strong>Guest:</strong> Chat instantly, no email required</li>
+              <li>• <strong>Registered:</strong> Personalized profile & message history</li>
+              <li>• Connect with Muslims from different countries</li>
+              <li>• Share experiences and get real-time advice</li>
             </ul>
           </div>
         </div>

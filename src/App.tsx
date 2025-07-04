@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Community from "./pages/Community";
 import Agents from "./pages/Agents";
 import Support from "./pages/Support";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,6 +21,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/community" element={<Community />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/support" element={<Support />} />

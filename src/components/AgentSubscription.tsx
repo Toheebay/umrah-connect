@@ -8,9 +8,9 @@ const AgentSubscription = () => {
 
   const plans = [
     {
-      name: 'Starter',
+      name: 'Basic',
       icon: Star,
-      price: { monthly: 50, yearly: 500 },
+      price: { monthly: 10, yearly: 100 },
       description: 'Perfect for new agents starting their journey',
       features: [
         'Up to 50 bookings per month',
@@ -24,9 +24,9 @@ const AgentSubscription = () => {
       popular: false
     },
     {
-      name: 'Professional',
+      name: 'Premium',
       icon: Crown,
-      price: { monthly: 100, yearly: 1000 },
+      price: { monthly: 15, yearly: 150 },
       description: 'Most popular choice for growing agencies',
       features: [
         'Unlimited bookings',
@@ -45,10 +45,10 @@ const AgentSubscription = () => {
     {
       name: 'Enterprise',
       icon: Award,
-      price: { monthly: 250, yearly: 2500 },
+      price: { monthly: 18, yearly: 180 },
       description: 'For large agencies and tour operators',
       features: [
-        'Everything in Professional',
+        'Everything in Premium',
         'Multi-agent dashboard',
         'Dedicated account manager',
         'Custom integrations',

@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Users, MessageSquare, Send } from 'lucide-react';
-import { useUser } from '@clerk/clerk-react';
-import { ChatNavigator } from './ChatNavigator';
+import { supabase } from '@/integrations/supabase/client';
+import ChatNavigator from './ChatNavigator';
 
 interface Message {
   username: string;
@@ -19,8 +19,25 @@ const CommunityChat = () => {
   const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('users');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { user: currentUser } = useUser();
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  // Check for authenticated user
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+    };
+    
+    getUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setCurrentUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     // Mock data for demonstration
@@ -49,19 +66,35 @@ const CommunityChat = () => {
     scrollToBottom();
   }, [messages]);
 
+  const scrollToTop = () => {
+    messagesContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const scrollUp = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollBy({ top: -200, behavior: 'smooth' });
+    }
+  };
+
+  const scrollDown = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollBy({ top: 200, behavior: 'smooth' });
+    }
+  };
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
       const now = new Date();
       const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const message: Message = {
-        username: currentUser?.username || 'Guest',
+        username: currentUser?.user_metadata?.username || currentUser?.email?.split('@')[0] || 'Guest',
         message: newMessage,
         timestamp: timestamp,
-        location: currentUser?.firstName || 'Unknown',
+        location: currentUser?.user_metadata?.location || localStorage.getItem('guestLocation') || 'Unknown',
         type: 'text',
       };
       setMessages((prevMessages) => [...prevMessages, message]);
@@ -207,17 +240,22 @@ const CommunityChat = () => {
             </CardHeader>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 bg-gray-50">
+            <div 
+              ref={messagesContainerRef}
+              className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 bg-gray-50"
+            >
               {messages.map((message, index) => (
                 <div
                   key={index}
                   className={`flex items-start space-x-2 sm:space-x-3 ${
-                    message.username === currentUser?.username ? 'flex-row-reverse space-x-reverse' : ''
+                    message.username === (currentUser?.user_metadata?.username || currentUser?.email?.split('@')[0])
+                      ? 'flex-row-reverse space-x-reverse' 
+                      : ''
                   } animate-slide-up`}
                 >
                   <div className="flex-shrink-0">
                     <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm ${
-                      message.username === currentUser?.username
+                      message.username === (currentUser?.user_metadata?.username || currentUser?.email?.split('@')[0])
                         ? 'bg-gradient-to-r from-purple-500 to-pink-500'
                         : 'bg-gradient-to-r from-blue-500 to-indigo-500'
                     }`}>
@@ -226,7 +264,9 @@ const CommunityChat = () => {
                   </div>
                   
                   <div className={`max-w-[70%] sm:max-w-[80%] ${
-                    message.username === currentUser?.username ? 'text-right' : ''
+                    message.username === (currentUser?.user_metadata?.username || currentUser?.email?.split('@')[0])
+                      ? 'text-right' 
+                      : ''
                   }`}>
                     <div className="flex items-center space-x-2 mb-1">
                       <span className="font-semibold text-xs sm:text-sm text-gray-900">
@@ -243,7 +283,7 @@ const CommunityChat = () => {
                     </div>
                     
                     <div className={`inline-block px-3 sm:px-4 py-2 sm:py-3 rounded-2xl shadow-sm text-sm sm:text-base ${
-                      message.username === currentUser?.username
+                      message.username === (currentUser?.user_metadata?.username || currentUser?.email?.split('@')[0])
                         ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
                         : 'bg-white text-gray-900 border border-gray-200'
                     }`}>
@@ -286,7 +326,12 @@ const CommunityChat = () => {
         </div>
       </div>
       
-      <ChatNavigator />
+      <ChatNavigator 
+        onScrollToTop={scrollToTop}
+        onScrollToBottom={scrollToBottom}
+        onScrollUp={scrollUp}
+        onScrollDown={scrollDown}
+      />
     </div>
   );
 };

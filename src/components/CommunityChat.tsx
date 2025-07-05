@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,63 +7,208 @@ import { supabase } from '@/integrations/supabase/client';
 import ChatNavigator from './ChatNavigator';
 
 interface Message {
+  id: string;
   username: string;
   message: string;
   timestamp: string;
   location?: string;
-  type?: 'text' | 'join';
+  type?: 'text' | 'join' | 'leave';
+  user_id?: string;
+}
+
+interface OnlineUser {
+  username: string;
+  location: string;
+  user_id?: string;
+  isGuest?: boolean;
 }
 
 const CommunityChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [activeTab, setActiveTab] = useState('users');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isGuest, setIsGuest] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Check for authenticated user
+  // Check for authenticated user or guest
   useEffect(() => {
-    const getUser = async () => {
+    const initializeUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUser(user);
+      
+      if (user) {
+        setCurrentUser(user);
+        setIsGuest(false);
+      } else {
+        // Check for guest user
+        const guestUser = localStorage.getItem('guestUser');
+        if (guestUser) {
+          const guest = JSON.parse(guestUser);
+          setCurrentUser(guest);
+          setIsGuest(true);
+        }
+      }
     };
     
-    getUser();
+    initializeUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setCurrentUser(session?.user ?? null);
+      if (session?.user) {
+        setCurrentUser(session.user);
+        setIsGuest(false);
+      } else {
+        // Check for guest user when no auth session
+        const guestUser = localStorage.getItem('guestUser');
+        if (guestUser) {
+          const guest = JSON.parse(guestUser);
+          setCurrentUser(guest);
+          setIsGuest(true);
+        } else {
+          setCurrentUser(null);
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  // Load messages from Supabase
   useEffect(() => {
-    // Mock data for demonstration
-    const mockMessages: Message[] = [
-      { username: 'System', message: 'Welcome to the community!', timestamp: '10:00 AM', type: 'join' },
-      { username: 'Hassan', message: 'Hello everyone!', timestamp: '10:01 AM', location: 'Riyadh' },
-      { username: 'Fatima', message: 'Excited to be here.', timestamp: '10:02 AM', location: 'Cairo' },
-      { username: 'Ahmed', message: 'Anyone planning Hajj this year?', timestamp: '10:03 AM', location: 'London' },
-    ];
-    const mockUsers = [
-      { username: 'Hassan', location: 'Riyadh' },
-      { username: 'Fatima', location: 'Cairo' },
-      { username: 'Ahmed', location: 'London' },
-      { username: 'Aisha', location: 'Istanbul' },
-    ];
+    const loadMessages = async () => {
+      try {
+        const { data: chatMessages, error } = await supabase
+          .from('chat_messages')
+          .select('*')
+          .order('created_at', { ascending: true })
+          .limit(50);
 
-    setMessages(mockMessages);
-    setOnlineUsers(mockUsers);
+        if (error) {
+          console.error('Error loading messages:', error);
+          // Fall back to mock data if database fails
+          loadMockData();
+        } else if (chatMessages) {
+          const formattedMessages = chatMessages.map(msg => ({
+            id: msg.id,
+            username: msg.user_id ? 'User' : 'Guest', // We'll improve this later
+            message: msg.message,
+            timestamp: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            type: msg.message_type as 'text' | 'join' | 'leave',
+            user_id: msg.user_id
+          }));
+          setMessages(formattedMessages);
+        }
+      } catch (error) {
+        console.error('Error in loadMessages:', error);
+        loadMockData();
+      }
+    };
 
-    // Scroll to bottom on initial load
-    scrollToBottom();
+    const loadMockData = () => {
+      const mockMessages: Message[] = [
+        { id: '1', username: 'System', message: 'Welcome to the global community!', timestamp: '10:00 AM', type: 'join' },
+        { id: '2', username: 'Hassan', message: 'Hello everyone!', timestamp: '10:01 AM', location: 'Riyadh' },
+        { id: '3', username: 'Fatima', message: 'Excited to be here.', timestamp: '10:02 AM', location: 'Cairo' },
+        { id: '4', username: 'Ahmed', message: 'Anyone planning Hajj this year?', timestamp: '10:03 AM', location: 'London' },
+      ];
+      const mockUsers: OnlineUser[] = [
+        { username: 'Hassan', location: 'Riyadh' },
+        { username: 'Fatima', location: 'Cairo' },
+        { username: 'Ahmed', location: 'London' },
+        { username: 'Aisha', location: 'Istanbul' },
+      ];
+
+      setMessages(mockMessages);
+      setOnlineUsers(mockUsers);
+    };
+
+    loadMessages();
   }, []);
 
+  // Set up real-time message subscription
   useEffect(() => {
-    // Scroll to bottom on new messages
+    const channel = supabase
+      .channel('chat-messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages'
+        },
+        (payload) => {
+          const newMsg = {
+            id: payload.new.id,
+            username: payload.new.user_id ? 'User' : 'Guest',
+            message: payload.new.message,
+            timestamp: new Date(payload.new.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            type: payload.new.message_type as 'text' | 'join' | 'leave',
+            user_id: payload.new.user_id
+          };
+          
+          setMessages(prev => [...prev, newMsg]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Add user join notification when they first enter
+  useEffect(() => {
+    let hasNotified = false;
+    
+    if (currentUser && !hasNotified) {
+      const joinMessage: Message = {
+        id: `join-${Date.now()}`,
+        username: 'System',
+        message: `${getUserDisplayName()} joined the chat from ${getUserLocation()}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        type: 'join'
+      };
+      
+      setMessages(prev => [...prev, joinMessage]);
+      hasNotified = true;
+      
+      // Add to online users
+      const newUser: OnlineUser = {
+        username: getUserDisplayName(),
+        location: getUserLocation(),
+        user_id: isGuest ? undefined : currentUser.id,
+        isGuest: isGuest
+      };
+      
+      setOnlineUsers(prev => {
+        const exists = prev.some(user => 
+          user.username === newUser.username && user.location === newUser.location
+        );
+        if (!exists) {
+          return [...prev, newUser];
+        }
+        return prev;
+      });
+    }
+  }, [currentUser, isGuest]);
+
+  const getUserDisplayName = () => {
+    if (isGuest && currentUser) {
+      return `Guest-${currentUser.username || 'User'}`;
+    }
+    return currentUser?.user_metadata?.username || currentUser?.email?.split('@')[0] || 'User';
+  };
+
+  const getUserLocation = () => {
+    if (isGuest) {
+      return localStorage.getItem('guestLocation') || 'Unknown';
+    }
+    return currentUser?.user_metadata?.location || 'Unknown';
+  };
+
+  useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
@@ -86,19 +232,47 @@ const CommunityChat = () => {
     }
   };
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      const now = new Date();
-      const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const message: Message = {
-        username: currentUser?.user_metadata?.username || currentUser?.email?.split('@')[0] || 'Guest',
-        message: newMessage,
-        timestamp: timestamp,
-        location: currentUser?.user_metadata?.location || localStorage.getItem('guestLocation') || 'Unknown',
-        type: 'text',
-      };
-      setMessages((prevMessages) => [...prevMessages, message]);
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !currentUser) return;
+
+    const messageData = {
+      message: newMessage,
+      user_id: isGuest ? null : currentUser.id,
+      message_type: 'text'
+    };
+
+    try {
+      const { error } = await supabase
+        .from('chat_messages')
+        .insert([messageData]);
+
+      if (error) {
+        console.error('Error sending message:', error);
+        // Fall back to local message if database fails
+        const now = new Date();
+        const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const localMessage: Message = {
+          id: `local-${Date.now()}`,
+          username: getUserDisplayName(),
+          message: newMessage,
+          timestamp: timestamp,
+          location: getUserLocation(),
+          type: 'text',
+          user_id: isGuest ? undefined : currentUser.id
+        };
+        setMessages(prev => [...prev, localMessage]);
+      }
+      
       setNewMessage('');
+    } catch (error) {
+      console.error('Error in handleSendMessage:', error);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
@@ -154,18 +328,20 @@ const CommunityChat = () => {
                     <div className="space-y-2 sm:space-y-3">
                       {onlineUsers.map((user, index) => (
                         <div
-                          key={index}
+                          key={`${user.username}-${user.location}-${index}`}
                           className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl hover:from-blue-100 hover:to-purple-100 transition-all cursor-pointer"
                         >
                           <div className="relative">
-                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                              user.isGuest ? 'bg-gradient-to-r from-gray-500 to-gray-600' : 'bg-gradient-to-r from-blue-500 to-purple-600'
+                            }`}>
                               {user.username.charAt(0).toUpperCase()}
                             </div>
                             <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="font-semibold text-gray-900 text-xs sm:text-sm truncate">
-                              {user.username}
+                              {user.username} {user.isGuest && '(Guest)'}
                             </div>
                             <div className="text-xs text-gray-500 truncate">
                               {user.location && `📍 ${user.location}`}
@@ -177,10 +353,10 @@ const CommunityChat = () => {
                   ) : (
                     <div className="space-y-2 sm:space-y-3">
                       {[
-                        { name: 'General Discussion', count: 45, flag: '🌍' },
-                        { name: 'Hajj 2024', count: 23, flag: '🕋' },
-                        { name: 'Umrah Tips', count: 34, flag: '🤲' },
-                        { name: 'Travel Stories', count: 18, flag: '✈️' }
+                        { name: 'General Discussion', count: onlineUsers.length, flag: '🌍' },
+                        { name: 'Hajj 2024', count: Math.floor(onlineUsers.length * 0.6), flag: '🕋' },
+                        { name: 'Umrah Tips', count: Math.floor(onlineUsers.length * 0.8), flag: '🤲' },
+                        { name: 'Travel Stories', count: Math.floor(onlineUsers.length * 0.4), flag: '✈️' }
                       ].map((room, index) => (
                         <div
                           key={index}
@@ -219,10 +395,10 @@ const CommunityChat = () => {
                 </button>
                 <div>
                   <h3 className="font-bold text-gray-900 text-sm sm:text-base lg:text-lg">
-                    🌍 General Discussion
+                    🌍 Global Community Chat
                   </h3>
                   <p className="text-xs sm:text-sm text-gray-600">
-                    {onlineUsers.length} members online
+                    {onlineUsers.length} members online • Real-time messaging
                   </p>
                 </div>
               </div>
@@ -234,7 +410,7 @@ const CommunityChat = () => {
                   className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
                   onClick={() => window.location.href = '/auth'}
                 >
-                  {currentUser ? '👤 Profile' : '🔐 Login'}
+                  {currentUser ? (isGuest ? '🎭 Guest' : '👤 Profile') : '🔐 Login'}
                 </Button>
               </div>
             </CardHeader>
@@ -244,60 +420,71 @@ const CommunityChat = () => {
               ref={messagesContainerRef}
               className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 bg-gray-50"
             >
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex items-start space-x-2 sm:space-x-3 ${
-                    message.username === (currentUser?.user_metadata?.username || currentUser?.email?.split('@')[0])
-                      ? 'flex-row-reverse space-x-reverse' 
-                      : ''
-                  } animate-slide-up`}
-                >
-                  <div className="flex-shrink-0">
-                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm ${
-                      message.username === (currentUser?.user_metadata?.username || currentUser?.email?.split('@')[0])
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500'
-                        : 'bg-gradient-to-r from-blue-500 to-indigo-500'
-                    }`}>
-                      {message.username.charAt(0).toUpperCase()}
-                    </div>
-                  </div>
-                  
-                  <div className={`max-w-[70%] sm:max-w-[80%] ${
-                    message.username === (currentUser?.user_metadata?.username || currentUser?.email?.split('@')[0])
-                      ? 'text-right' 
-                      : ''
-                  }`}>
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="font-semibold text-xs sm:text-sm text-gray-900">
-                        {message.username}
-                      </span>
-                      {message.location && (
-                        <span className="text-xs text-gray-500">
-                          📍 {message.location}
-                        </span>
-                      )}
-                      <span className="text-xs text-gray-500">
-                        {message.timestamp}
-                      </span>
+              {messages.map((message, index) => {
+                const isCurrentUser = message.username === getUserDisplayName() || 
+                  (message.user_id && !isGuest && message.user_id === currentUser?.id);
+                
+                return (
+                  <div
+                    key={message.id || index}
+                    className={`flex items-start space-x-2 sm:space-x-3 ${
+                      isCurrentUser ? 'flex-row-reverse space-x-reverse' : ''
+                    } animate-slide-up`}
+                  >
+                    <div className="flex-shrink-0">
+                      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm ${
+                        message.type === 'join' || message.type === 'leave'
+                          ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                          : isCurrentUser
+                          ? 'bg-gradient-to-r from-purple-500 to-pink-500'
+                          : message.username.includes('Guest')
+                          ? 'bg-gradient-to-r from-gray-500 to-gray-600'
+                          : 'bg-gradient-to-r from-blue-500 to-indigo-500'
+                      }`}>
+                        {message.username.charAt(0).toUpperCase()}
+                      </div>
                     </div>
                     
-                    <div className={`inline-block px-3 sm:px-4 py-2 sm:py-3 rounded-2xl shadow-sm text-sm sm:text-base ${
-                      message.username === (currentUser?.user_metadata?.username || currentUser?.email?.split('@')[0])
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                        : 'bg-white text-gray-900 border border-gray-200'
+                    <div className={`max-w-[70%] sm:max-w-[80%] ${
+                      isCurrentUser ? 'text-right' : ''
                     }`}>
-                      {message.type === 'join' ? (
-                        <span className="text-emerald-600 font-medium">
-                          🎉 {message.message}
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="font-semibold text-xs sm:text-sm text-gray-900">
+                          {message.username}
                         </span>
-                      ) : (
-                        message.message
-                      )}
+                        {message.location && (
+                          <span className="text-xs text-gray-500">
+                            📍 {message.location}
+                          </span>
+                        )}
+                        <span className="text-xs text-gray-500">
+                          {message.timestamp}
+                        </span>
+                      </div>
+                      
+                      <div className={`inline-block px-3 sm:px-4 py-2 sm:py-3 rounded-2xl shadow-sm text-sm sm:text-base ${
+                        message.type === 'join' || message.type === 'leave'
+                          ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-emerald-800 border border-emerald-200'
+                          : isCurrentUser
+                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                          : 'bg-white text-gray-900 border border-gray-200'
+                      }`}>
+                        {message.type === 'join' ? (
+                          <span className="font-medium">
+                            🎉 {message.message}
+                          </span>
+                        ) : message.type === 'leave' ? (
+                          <span className="font-medium">
+                            👋 {message.message}
+                          </span>
+                        ) : (
+                          message.message
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               <div ref={messagesEndRef} />
             </div>
 
@@ -308,7 +495,7 @@ const CommunityChat = () => {
                   type="text"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  onKeyPress={handleKeyPress}
                   placeholder={currentUser ? "Type your message..." : "Login to send messages..."}
                   disabled={!currentUser}
                   className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-100 disabled:cursor-not-allowed text-sm sm:text-base"
@@ -321,6 +508,11 @@ const CommunityChat = () => {
                   <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
               </div>
+              {currentUser && (
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Connected as {getUserDisplayName()} from {getUserLocation()}
+                </p>
+              )}
             </div>
           </Card>
         </div>

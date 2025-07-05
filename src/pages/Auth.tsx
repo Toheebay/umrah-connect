@@ -14,7 +14,6 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const [userLocation, setUserLocation] = useState('');
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -27,14 +26,12 @@ const Auth = () => {
           navigator.geolocation.getCurrentPosition(
             async (position) => {
               try {
-                // Using a simple location API to get country/city from coordinates
                 const { latitude, longitude } = position.coords;
                 const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
                 const data = await response.json();
                 const location = `${data.city || data.locality || 'Unknown City'}, ${data.countryName || 'Unknown Country'}`;
                 setUserLocation(location);
               } catch (error) {
-                // Fallback to random location if API fails
                 const locations = [
                   'Lagos, Nigeria', 'London, UK', 'New York, USA', 'Dubai, UAE',
                   'Istanbul, Turkey', 'Cairo, Egypt', 'Riyadh, Saudi Arabia',
@@ -44,7 +41,6 @@ const Auth = () => {
               }
             },
             (error) => {
-              // Fallback location on geolocation error
               const locations = [
                 'Lagos, Nigeria', 'London, UK', 'New York, USA', 'Dubai, UAE',
                 'Istanbul, Turkey', 'Cairo, Egypt', 'Riyadh, Saudi Arabia'
@@ -66,9 +62,8 @@ const Auth = () => {
   useEffect(() => {
     // Check if user is already logged in
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
         navigate('/community');
       }
     };
@@ -77,7 +72,6 @@ const Auth = () => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
       if (session?.user) {
         navigate('/community');
       }
@@ -91,7 +85,7 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -102,11 +96,12 @@ const Auth = () => {
           description: error.message,
           variant: "destructive"
         });
-      } else {
+      } else if (data.user) {
         toast({
           title: "Welcome back!",
           description: `Successfully logged in from ${userLocation}`
         });
+        navigate('/community');
       }
     } catch (error) {
       toast({
@@ -124,9 +119,9 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      const redirectUrl = `${window.location.origin}/community`;
       
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -145,11 +140,13 @@ const Auth = () => {
           description: error.message,
           variant: "destructive"
         });
-      } else {
+      } else if (data.user) {
         toast({
           title: "Account created!",
-          description: `Welcome to the global community! Joining from ${userLocation}`
+          description: `Welcome to the global community! Joining from ${userLocation}. Please check your email to verify your account.`
         });
+        // Navigate to community even before email verification for better UX
+        navigate('/community');
       }
     } catch (error) {
       toast({
@@ -163,8 +160,12 @@ const Auth = () => {
   };
 
   const handleGuestAccess = () => {
-    // Store guest location for chat
     localStorage.setItem('guestLocation', userLocation);
+    localStorage.setItem('guestUser', JSON.stringify({
+      username: 'Guest',
+      location: userLocation,
+      isGuest: true
+    }));
     navigate('/community');
   };
 
@@ -266,6 +267,7 @@ const Auth = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10"
                     required
+                    minLength={6}
                   />
                 </div>
               </div>

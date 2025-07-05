@@ -21,6 +21,7 @@ interface OnlineUser {
   location: string;
   user_id?: string;
   isGuest?: boolean;
+  presence_ref?: string;
 }
 
 const CommunityChat = () => {
@@ -31,6 +32,7 @@ const CommunityChat = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isGuest, setIsGuest] = useState(false);
+  const [presenceChannel, setPresenceChannel] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -75,6 +77,92 @@ const CommunityChat = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Set up real-time presence tracking
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const channel = supabase.channel('global-chat-presence', {
+      config: {
+        presence: {
+          key: currentUser.id || `guest-${Date.now()}`,
+        },
+      },
+    });
+
+    // Track current user presence
+    const userPresence = {
+      username: getUserDisplayName(),
+      location: getUserLocation(),
+      user_id: isGuest ? undefined : currentUser.id,
+      isGuest: isGuest,
+      online_at: new Date().toISOString(),
+    };
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const presenceState = channel.presenceState();
+        console.log('Presence sync:', presenceState);
+        
+        const users: OnlineUser[] = [];
+        Object.keys(presenceState).forEach(key => {
+          const presences = presenceState[key];
+          presences.forEach((presence: any) => {
+            users.push({
+              username: presence.username,
+              location: presence.location,
+              user_id: presence.user_id,
+              isGuest: presence.isGuest,
+              presence_ref: key,
+            });
+          });
+        });
+        
+        setOnlineUsers(users);
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        console.log('User joined:', key, newPresences);
+        newPresences.forEach((presence: any) => {
+          const joinMessage: Message = {
+            id: `join-${Date.now()}-${Math.random()}`,
+            username: 'System',
+            message: `${presence.username} joined the chat from ${presence.location}`,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            type: 'join'
+          };
+          setMessages(prev => [...prev, joinMessage]);
+        });
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        console.log('User left:', key, leftPresences);
+        leftPresences.forEach((presence: any) => {
+          const leaveMessage: Message = {
+            id: `leave-${Date.now()}-${Math.random()}`,
+            username: 'System',
+            message: `${presence.username} left the chat`,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            type: 'leave'
+          };
+          setMessages(prev => [...prev, leaveMessage]);
+        });
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Connected to presence channel');
+          await channel.track(userPresence);
+        }
+      });
+
+    setPresenceChannel(channel);
+
+    return () => {
+      console.log('Cleaning up presence channel');
+      if (channel) {
+        channel.untrack();
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [currentUser, isGuest]);
+
   // Load messages from Supabase
   useEffect(() => {
     const loadMessages = async () => {
@@ -87,12 +175,10 @@ const CommunityChat = () => {
 
         if (error) {
           console.error('Error loading messages:', error);
-          // Fall back to mock data if database fails
-          loadMockData();
         } else if (chatMessages) {
           const formattedMessages = chatMessages.map(msg => ({
             id: msg.id,
-            username: msg.user_id ? 'User' : 'Guest', // We'll improve this later
+            username: msg.user_id ? 'User' : 'Guest',
             message: msg.message,
             timestamp: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             type: msg.message_type as 'text' | 'join' | 'leave',
@@ -102,26 +188,7 @@ const CommunityChat = () => {
         }
       } catch (error) {
         console.error('Error in loadMessages:', error);
-        loadMockData();
       }
-    };
-
-    const loadMockData = () => {
-      const mockMessages: Message[] = [
-        { id: '1', username: 'System', message: 'Welcome to the global community!', timestamp: '10:00 AM', type: 'join' },
-        { id: '2', username: 'Hassan', message: 'Hello everyone!', timestamp: '10:01 AM', location: 'Riyadh' },
-        { id: '3', username: 'Fatima', message: 'Excited to be here.', timestamp: '10:02 AM', location: 'Cairo' },
-        { id: '4', username: 'Ahmed', message: 'Anyone planning Hajj this year?', timestamp: '10:03 AM', location: 'London' },
-      ];
-      const mockUsers: OnlineUser[] = [
-        { username: 'Hassan', location: 'Riyadh' },
-        { username: 'Fatima', location: 'Cairo' },
-        { username: 'Ahmed', location: 'London' },
-        { username: 'Aisha', location: 'Istanbul' },
-      ];
-
-      setMessages(mockMessages);
-      setOnlineUsers(mockUsers);
     };
 
     loadMessages();
@@ -139,6 +206,7 @@ const CommunityChat = () => {
           table: 'chat_messages'
         },
         (payload) => {
+          console.log('New message received:', payload);
           const newMsg = {
             id: payload.new.id,
             username: payload.new.user_id ? 'User' : 'Guest',
@@ -157,42 +225,6 @@ const CommunityChat = () => {
       supabase.removeChannel(channel);
     };
   }, []);
-
-  // Add user join notification when they first enter
-  useEffect(() => {
-    let hasNotified = false;
-    
-    if (currentUser && !hasNotified) {
-      const joinMessage: Message = {
-        id: `join-${Date.now()}`,
-        username: 'System',
-        message: `${getUserDisplayName()} joined the chat from ${getUserLocation()}`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        type: 'join'
-      };
-      
-      setMessages(prev => [...prev, joinMessage]);
-      hasNotified = true;
-      
-      // Add to online users
-      const newUser: OnlineUser = {
-        username: getUserDisplayName(),
-        location: getUserLocation(),
-        user_id: isGuest ? undefined : currentUser.id,
-        isGuest: isGuest
-      };
-      
-      setOnlineUsers(prev => {
-        const exists = prev.some(user => 
-          user.username === newUser.username && user.location === newUser.location
-        );
-        if (!exists) {
-          return [...prev, newUser];
-        }
-        return prev;
-      });
-    }
-  }, [currentUser, isGuest]);
 
   const getUserDisplayName = () => {
     if (isGuest && currentUser) {

@@ -33,8 +33,51 @@ const CommunityChat = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isGuest, setIsGuest] = useState(false);
   const [presenceChannel, setPresenceChannel] = useState<any>(null);
+  const [userLocation, setUserLocation] = useState<string>('Unknown');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  // Get user's location
+  useEffect(() => {
+    const getUserLocation = async () => {
+      try {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              const { latitude, longitude } = position.coords;
+              try {
+                // Use a simple reverse geocoding service
+                const response = await fetch(
+                  `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+                );
+                const data = await response.json();
+                const location = `${data.city || data.locality || 'Unknown'}, ${data.countryName || 'Unknown'}`;
+                setUserLocation(location);
+                localStorage.setItem('userLocation', location);
+              } catch (error) {
+                console.error('Error getting location name:', error);
+                setUserLocation(`${latitude.toFixed(2)}, ${longitude.toFixed(2)}`);
+              }
+            },
+            (error) => {
+              console.error('Error getting location:', error);
+              // Fallback to stored location or default
+              const storedLocation = localStorage.getItem('userLocation') || 'Unknown';
+              setUserLocation(storedLocation);
+            }
+          );
+        } else {
+          const storedLocation = localStorage.getItem('userLocation') || 'Unknown';
+          setUserLocation(storedLocation);
+        }
+      } catch (error) {
+        console.error('Location error:', error);
+        setUserLocation('Unknown');
+      }
+    };
+
+    getUserLocation();
+  }, []);
 
   // Check for authenticated user or guest
   useEffect(() => {
@@ -44,6 +87,7 @@ const CommunityChat = () => {
       if (user) {
         setCurrentUser(user);
         setIsGuest(false);
+        console.log('Authenticated user:', user.email);
       } else {
         // Check for guest user
         const guestUser = localStorage.getItem('guestUser');
@@ -51,6 +95,19 @@ const CommunityChat = () => {
           const guest = JSON.parse(guestUser);
           setCurrentUser(guest);
           setIsGuest(true);
+          console.log('Guest user:', guest.username);
+        } else {
+          // Create a guest user if none exists
+          const guestId = `guest-${Date.now()}`;
+          const guest = {
+            id: guestId,
+            username: `Guest${Math.floor(Math.random() * 1000)}`,
+            email: `${guestId}@guest.local`
+          };
+          localStorage.setItem('guestUser', JSON.stringify(guest));
+          setCurrentUser(guest);
+          setIsGuest(true);
+          console.log('Created guest user:', guest.username);
         }
       }
     };
@@ -58,18 +115,17 @@ const CommunityChat = () => {
     initializeUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
       if (session?.user) {
         setCurrentUser(session.user);
         setIsGuest(false);
       } else {
-        // Check for guest user when no auth session
+        // Maintain guest session when no auth
         const guestUser = localStorage.getItem('guestUser');
         if (guestUser) {
           const guest = JSON.parse(guestUser);
           setCurrentUser(guest);
           setIsGuest(true);
-        } else {
-          setCurrentUser(null);
         }
       }
     });
@@ -79,7 +135,9 @@ const CommunityChat = () => {
 
   // Set up real-time presence tracking
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || !userLocation) return;
+
+    console.log('Setting up presence for:', getUserDisplayName(), 'at', userLocation);
 
     const channel = supabase.channel('global-chat-presence', {
       config: {
@@ -92,7 +150,7 @@ const CommunityChat = () => {
     // Track current user presence
     const userPresence = {
       username: getUserDisplayName(),
-      location: getUserLocation(),
+      location: userLocation,
       user_id: isGuest ? undefined : currentUser.id,
       isGuest: isGuest,
       online_at: new Date().toISOString(),
@@ -117,6 +175,7 @@ const CommunityChat = () => {
           });
         });
         
+        console.log('Online users updated:', users.length);
         setOnlineUsers(users);
       })
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
@@ -125,9 +184,10 @@ const CommunityChat = () => {
           const joinMessage: Message = {
             id: `join-${Date.now()}-${Math.random()}`,
             username: 'System',
-            message: `${presence.username} joined the chat from ${presence.location}`,
+            message: `${presence.username} joined from ${presence.location}`,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            type: 'join'
+            type: 'join',
+            location: presence.location
           };
           setMessages(prev => [...prev, joinMessage]);
         });
@@ -146,8 +206,9 @@ const CommunityChat = () => {
         });
       })
       .subscribe(async (status) => {
+        console.log('Presence channel status:', status);
         if (status === 'SUBSCRIBED') {
-          console.log('Connected to presence channel');
+          console.log('Tracking presence:', userPresence);
           await channel.track(userPresence);
         }
       });
@@ -161,12 +222,13 @@ const CommunityChat = () => {
         supabase.removeChannel(channel);
       }
     };
-  }, [currentUser, isGuest]);
+  }, [currentUser, isGuest, userLocation]);
 
   // Load messages from Supabase
   useEffect(() => {
     const loadMessages = async () => {
       try {
+        console.log('Loading messages...');
         const { data: chatMessages, error } = await supabase
           .from('chat_messages')
           .select('*')
@@ -176,6 +238,7 @@ const CommunityChat = () => {
         if (error) {
           console.error('Error loading messages:', error);
         } else if (chatMessages) {
+          console.log('Loaded messages:', chatMessages.length);
           const formattedMessages = chatMessages.map(msg => ({
             id: msg.id,
             username: msg.user_id ? 'User' : 'Guest',
@@ -196,6 +259,7 @@ const CommunityChat = () => {
 
   // Set up real-time message subscription
   useEffect(() => {
+    console.log('Setting up message subscription...');
     const channel = supabase
       .channel('chat-messages')
       .on(
@@ -216,28 +280,29 @@ const CommunityChat = () => {
             user_id: payload.new.user_id
           };
           
-          setMessages(prev => [...prev, newMsg]);
+          setMessages(prev => {
+            // Avoid duplicates
+            const exists = prev.some(msg => msg.id === newMsg.id);
+            if (exists) return prev;
+            return [...prev, newMsg];
+          });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Message subscription status:', status);
+      });
 
     return () => {
+      console.log('Cleaning up message subscription');
       supabase.removeChannel(channel);
     };
   }, []);
 
   const getUserDisplayName = () => {
     if (isGuest && currentUser) {
-      return `Guest-${currentUser.username || 'User'}`;
+      return currentUser.username || `Guest-${currentUser.id?.slice(-4)}`;
     }
     return currentUser?.user_metadata?.username || currentUser?.email?.split('@')[0] || 'User';
-  };
-
-  const getUserLocation = () => {
-    if (isGuest) {
-      return localStorage.getItem('guestLocation') || 'Unknown';
-    }
-    return currentUser?.user_metadata?.location || 'Unknown';
   };
 
   useEffect(() => {
@@ -265,7 +330,17 @@ const CommunityChat = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !currentUser) return;
+    if (!newMessage.trim()) {
+      console.log('Empty message, not sending');
+      return;
+    }
+
+    if (!currentUser) {
+      console.log('No user, cannot send message');
+      return;
+    }
+
+    console.log('Sending message:', newMessage, 'from:', getUserDisplayName());
 
     const messageData = {
       message: newMessage,
@@ -279,25 +354,37 @@ const CommunityChat = () => {
         .insert([messageData]);
 
       if (error) {
-        console.error('Error sending message:', error);
-        // Fall back to local message if database fails
-        const now = new Date();
-        const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        console.error('Error sending message to database:', error);
+        // Create local fallback message
         const localMessage: Message = {
           id: `local-${Date.now()}`,
           username: getUserDisplayName(),
           message: newMessage,
-          timestamp: timestamp,
-          location: getUserLocation(),
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          location: userLocation,
           type: 'text',
           user_id: isGuest ? undefined : currentUser.id
         };
         setMessages(prev => [...prev, localMessage]);
+      } else {
+        console.log('Message sent successfully to database');
       }
       
       setNewMessage('');
     } catch (error) {
       console.error('Error in handleSendMessage:', error);
+      // Create local fallback message
+      const localMessage: Message = {
+        id: `local-${Date.now()}`,
+        username: getUserDisplayName(),
+        message: newMessage,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        location: userLocation,
+        type: 'text',
+        user_id: isGuest ? undefined : currentUser.id
+      };
+      setMessages(prev => [...prev, localMessage]);
+      setNewMessage('');
     }
   };
 
@@ -373,14 +460,20 @@ const CommunityChat = () => {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="font-semibold text-gray-900 text-xs sm:text-sm truncate">
-                              {user.username} {user.isGuest && '(Guest)'}
+                              {user.username} {user.isGuest && '👤'}
                             </div>
                             <div className="text-xs text-gray-500 truncate">
-                              {user.location && `📍 ${user.location}`}
+                              📍 {user.location}
                             </div>
                           </div>
                         </div>
                       ))}
+                      {onlineUsers.length === 0 && (
+                        <div className="text-center text-gray-500 py-4">
+                          <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">No users online</p>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-2 sm:space-y-3">
@@ -442,7 +535,7 @@ const CommunityChat = () => {
                   className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
                   onClick={() => window.location.href = '/auth'}
                 >
-                  {currentUser ? (isGuest ? '🎭 Guest' : '👤 Profile') : '🔐 Login'}
+                  {currentUser ? (isGuest ? '👤 Guest' : '👤 Profile') : '🔐 Login'}
                 </Button>
               </div>
             </CardHeader>
@@ -453,8 +546,8 @@ const CommunityChat = () => {
               className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 bg-gray-50"
             >
               {messages.map((message, index) => {
-                const isCurrentUser = message.username === getUserDisplayName() || 
-                  (message.user_id && !isGuest && message.user_id === currentUser?.id);
+                const isCurrentUser = message.user_id === currentUser?.id || 
+                  (isGuest && message.username === getUserDisplayName());
                 
                 return (
                   <div
@@ -517,6 +610,13 @@ const CommunityChat = () => {
                   </div>
                 );
               })}
+              {messages.length === 0 && (
+                <div className="text-center text-gray-500 py-8">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium mb-2">Welcome to the Community Chat!</p>
+                  <p className="text-sm">Start a conversation with fellow Muslims around the world.</p>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
@@ -528,13 +628,12 @@ const CommunityChat = () => {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder={currentUser ? "Type your message..." : "Login to send messages..."}
-                  disabled={!currentUser}
-                  className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-100 disabled:cursor-not-allowed text-sm sm:text-base"
+                  placeholder="Type your message..."
+                  className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm sm:text-base"
                 />
                 <Button
                   onClick={handleSendMessage}
-                  disabled={!currentUser || !newMessage.trim()}
+                  disabled={!newMessage.trim()}
                   className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full px-4 sm:px-6 py-2 sm:py-3 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Send className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -542,7 +641,7 @@ const CommunityChat = () => {
               </div>
               {currentUser && (
                 <p className="text-xs text-gray-500 mt-2 text-center">
-                  Connected as {getUserDisplayName()} from {getUserLocation()}
+                  Connected as {getUserDisplayName()} from {userLocation}
                 </p>
               )}
             </div>

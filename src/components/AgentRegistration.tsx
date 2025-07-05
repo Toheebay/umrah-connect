@@ -36,19 +36,19 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
     { 
       id: 'basic', 
       name: 'Basic Plan', 
-      price: { USD: 199, EUR: 180, NGN: 320000 }, 
+      price: { USD: 50, EUR: 45, NGN: 85000 }, 
       features: ['Basic listing', 'Customer support', 'Basic analytics'] 
     },
     { 
       id: 'premium', 
       name: 'Premium Plan', 
-      price: { USD: 399, EUR: 360, NGN: 640000 }, 
+      price: { USD: 100, EUR: 90, NGN: 160000 }, 
       features: ['Priority listing', 'Advanced analytics', 'Marketing tools', 'Priority support'] 
     },
     { 
       id: 'enterprise', 
       name: 'Enterprise Plan', 
-      price: { USD: 699, EUR: 630, NGN: 1120000 }, 
+      price: { USD: 200, EUR: 180, NGN: 320000 }, 
       features: ['Top listing', 'Full analytics suite', 'Custom branding', 'Dedicated support', 'API access'] 
     }
   ];
@@ -101,8 +101,8 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
     if (!paymentSuccessful) {
       toast({
         variant: "destructive",
-        title: "Payment Required",
-        description: "Please complete the payment to proceed with the registration.",
+        title: "Subscription Payment Required",
+        description: "Please complete the subscription payment to proceed with the registration.",
       });
       return;
     }
@@ -112,7 +112,7 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
 
       toast({
         title: "Registration Successful!",
-        description: "Your registration has been submitted and is pending approval.",
+        description: "Your agent registration has been submitted and your subscription is active.",
       });
 
       // Reset form fields
@@ -143,8 +143,8 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
   const handlePaymentSuccess = (response: any) => {
     setPaymentSuccessful(true);
     toast({
-      title: "Payment Successful!",
-      description: "You can now submit your registration.",
+      title: "Subscription Payment Successful!",
+      description: "Your subscription is now active. You can complete your registration.",
     });
   };
 
@@ -153,7 +153,7 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
     toast({
       variant: "destructive",
       title: "Payment Failed!",
-      description: "There was an error processing your payment. Please try again.",
+      description: "There was an error processing your subscription payment. Please try again.",
     });
   };
 
@@ -167,16 +167,17 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
     <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center">Agent Registration</CardTitle>
+        <p className="text-center text-gray-600">Choose your subscription plan and register your agency</p>
       </CardHeader>
       <CardContent className="p-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Plan Selection */}
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="plan">Select Plan</Label>
+              <Label htmlFor="plan">Select Subscription Plan</Label>
               <Select onValueChange={setSelectedPlan} defaultValue={selectedPlan}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a plan" />
+                  <SelectValue placeholder="Select a subscription plan" />
                 </SelectTrigger>
                 <SelectContent>
                   {plans.map((plan) => (
@@ -205,10 +206,11 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
           </div>
 
           {/* Plan Details */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-semibold mb-2">{getCurrentPlan().name}</h4>
+          <div className="bg-gradient-to-r from-emerald-50 to-blue-50 p-4 rounded-lg border border-emerald-200">
+            <h4 className="font-semibold mb-2 text-emerald-800">{getCurrentPlan().name}</h4>
             <p className="text-2xl font-bold text-emerald-600 mb-2">
               {currencies.find(c => c.code === selectedCurrency)?.symbol}{getCurrentPrice().toLocaleString()}
+              <span className="text-sm font-normal text-gray-600"> /month</span>
             </p>
             <ul className="text-sm text-gray-600 space-y-1">
               {getCurrentPlan().features.map((feature, index) => (
@@ -220,46 +222,53 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
             </ul>
           </div>
 
-          <div>
-            <Label htmlFor="companyName">Company Name</Label>
-            <Input
-              type="text"
-              id="companyName"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              required
-            />
+          {/* Registration Form Fields */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="companyName">Company Name</Label>
+              <Input
+                type="text"
+                id="companyName"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="contactName">Contact Name</Label>
+              <Input
+                type="text"
+                id="contactName"
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+                required
+              />
+            </div>
           </div>
-          <div>
-            <Label htmlFor="contactName">Contact Name</Label>
-            <Input
-              type="text"
-              id="contactName"
-              value={contactName}
-              onChange={(e) => setContactName(e.target.value)}
-              required
-            />
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                type="tel"
+                id="phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+              />
+            </div>
           </div>
-          <div>
-            <Label htmlFor="email">Email Address</Label>
-            <Input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input
-              type="tel"
-              id="phone"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-            />
-          </div>
+
           <div>
             <Label htmlFor="address">Address</Label>
             <Input
@@ -270,6 +279,7 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
               required
             />
           </div>
+
           <div>
             <Label htmlFor="country">Country</Label>
             <Select onValueChange={setSelectedCountry} defaultValue={selectedCountry}>
@@ -285,6 +295,7 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
               </SelectContent>
             </Select>
           </div>
+
           <div>
             <Label htmlFor="website">Website URL</Label>
             <Input
@@ -292,8 +303,10 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
               id="website"
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
+              placeholder="https://yourwebsite.com"
             />
           </div>
+
           <div>
             <Label htmlFor="description">Company Description</Label>
             <Textarea
@@ -301,8 +314,10 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
+              placeholder="Tell us about your company and services..."
             />
           </div>
+
           <div>
             <Label htmlFor="licenseNumber">License Number</Label>
             <Input
@@ -313,6 +328,7 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
               required
             />
           </div>
+
           <div>
             <Label htmlFor="upload">Upload Documents (License, etc.)</Label>
             <Input
@@ -327,27 +343,27 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
               <span>{uploadedFiles.length > 0 ? `Selected ${uploadedFiles.length} files` : 'Select Files'}</span>
             </Label>
             {uploadedFiles.length > 0 && (
-              <Button type="button" size="sm" variant="secondary" onClick={handleFileUpload} disabled={uploading}>
+              <Button type="button" size="sm" variant="secondary" onClick={handleFileUpload} disabled={uploading} className="ml-2">
                 {uploading ? 'Uploading...' : 'Upload Files'}
               </Button>
             )}
           </div>
 
-          {/* Payment Section */}
-          <div className="border p-4 rounded-md bg-gray-50">
-            <h4 className="font-semibold mb-2 flex items-center space-x-2">
+          {/* Subscription Payment Section */}
+          <div className="border p-4 rounded-md bg-gradient-to-r from-emerald-50 to-blue-50 border-emerald-200">
+            <h4 className="font-semibold mb-2 flex items-center space-x-2 text-emerald-800">
               <CreditCard className="w-5 h-5" />
-              <span>Payment Information</span>
+              <span>Subscription Payment</span>
             </h4>
             {paymentSuccessful ? (
               <div className="flex items-center space-x-2 text-green-600">
                 <CheckCircle className="w-5 h-5" />
-                <span>Payment Successful!</span>
+                <span>Subscription Payment Successful!</span>
               </div>
             ) : (
               <>
                 <p className="text-sm text-gray-600 mb-3">
-                  Registration fee: {currencies.find(c => c.code === selectedCurrency)?.symbol}{getCurrentPrice().toLocaleString()} {selectedCurrency}
+                  Monthly subscription fee: {currencies.find(c => c.code === selectedCurrency)?.symbol}{getCurrentPrice().toLocaleString()} {selectedCurrency}
                 </p>
                 <FlutterwavePayment
                   amount={getCurrentPrice()}
@@ -364,8 +380,8 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
             )}
           </div>
 
-          <Button type="submit" className="w-full bg-gradient-islamic hover:opacity-90 text-white" disabled={!paymentSuccessful}>
-            Submit Registration
+          <Button type="submit" className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white" disabled={!paymentSuccessful}>
+            Complete Registration
           </Button>
         </form>
       </CardContent>

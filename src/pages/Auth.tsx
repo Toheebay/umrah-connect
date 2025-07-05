@@ -72,41 +72,54 @@ const Auth = () => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
+      if (event === 'SIGNED_IN' && session?.user) {
+        toast({
+          title: "Successfully signed in!",
+          description: `Welcome to the global community from ${userLocation}`,
+        });
         navigate('/community');
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, userLocation]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       });
 
       if (error) {
+        console.error('Login error:', error);
         toast({
           title: "Login failed",
           description: error.message,
           variant: "destructive"
         });
       } else if (data.user) {
-        toast({
-          title: "Welcome back!",
-          description: `Successfully logged in from ${userLocation}`
-        });
-        navigate('/community');
+        // Success will be handled by the auth state change listener
+        console.log('Login successful:', data.user);
       }
     } catch (error) {
+      console.error('Login catch error:', error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: "An unexpected error occurred during login",
         variant: "destructive"
       });
     } finally {
@@ -116,13 +129,32 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const redirectUrl = `${window.location.origin}/community`;
       
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
           emailRedirectTo: redirectUrl,
@@ -135,23 +167,34 @@ const Auth = () => {
       });
 
       if (error) {
+        console.error('Signup error:', error);
         toast({
           title: "Signup failed",
           description: error.message,
           variant: "destructive"
         });
       } else if (data.user) {
-        toast({
-          title: "Account created!",
-          description: `Welcome to the global community! Joining from ${userLocation}. Please check your email to verify your account.`
-        });
-        // Navigate to community even before email verification for better UX
-        navigate('/community');
+        if (data.user.email_confirmed_at) {
+          // User is immediately confirmed
+          toast({
+            title: "Account created successfully!",
+            description: `Welcome to the global community from ${userLocation}!`
+          });
+        } else {
+          // User needs email confirmation
+          toast({
+            title: "Account created!",
+            description: `Please check your email to verify your account. Joining from ${userLocation}.`
+          });
+          // Still navigate to community for better UX
+          navigate('/community');
+        }
       }
     } catch (error) {
+      console.error('Signup catch error:', error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: "An unexpected error occurred during signup",
         variant: "destructive"
       });
     } finally {
@@ -166,6 +209,10 @@ const Auth = () => {
       location: userLocation,
       isGuest: true
     }));
+    toast({
+      title: "Accessing as Guest",
+      description: `Joining the global chat from ${userLocation}`
+    });
     navigate('/community');
   };
 
@@ -220,14 +267,14 @@ const Auth = () => {
                 <span className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">Or create an account</span>
+                <span className="bg-white px-2 text-gray-500">Or {isLogin ? 'sign in' : 'create an account'}</span>
               </div>
             </div>
 
             <form onSubmit={isLogin ? handleLogin : handleSignup} className="space-y-4">
               {!isLogin && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Username</label>
+                  <label className="text-sm font-medium text-gray-700">Username (Optional)</label>
                   <div className="relative">
                     <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
@@ -285,6 +332,7 @@ const Auth = () => {
               <button
                 onClick={() => setIsLogin(!isLogin)}
                 className="text-emerald-600 hover:text-emerald-700 font-medium"
+                type="button"
               >
                 {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
               </button>
@@ -295,6 +343,7 @@ const Auth = () => {
                 onClick={() => navigate('/')}
                 variant="outline"
                 className="w-full"
+                type="button"
               >
                 Back to Home
               </Button>

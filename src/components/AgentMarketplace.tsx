@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -73,7 +72,12 @@ const AgentMarketplace = () => {
     { value: 'AE', label: 'UAE' },
     { value: 'NG', label: 'Nigeria' },
     { value: 'QA', label: 'Qatar' },
-    { value: 'OM', label: 'Oman' }
+    { value: 'OM', label: 'Oman' },
+    { value: 'US', label: 'USA' },
+    { value: 'CA', label: 'Canada' },
+    { value: 'GB', label: 'UK' },
+    { value: 'GH', label: 'Ghana' },
+    { value: 'KE', label: 'Kenya' }
   ];
 
   const services = [

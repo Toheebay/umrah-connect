@@ -66,7 +66,12 @@ const AgentRegistration: React.FC<AgentRegistrationProps> = ({ onRegistrationSuc
     { label: 'Oman', value: 'OM' },
     { label: 'Kuwait', value: 'KW' },
     { label: 'Bahrain', value: 'BH' },
-    { label: 'Nigeria', value: 'NG' }
+    { label: 'Nigeria', value: 'NG' },
+    { label: 'USA', value: 'US' },
+    { label: 'Canada', value: 'CA' },
+    { label: 'United Kingdom', value: 'GB' },
+    { label: 'Ghana', value: 'GH' },
+    { label: 'Kenya', value: 'KE' }
   ];
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {

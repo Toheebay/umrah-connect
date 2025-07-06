@@ -1,13 +1,11 @@
 
 import React from 'react';
 import Header from '@/components/Header';
-import BlogPreview from '@/components/BlogPreview';
+import Blog from '@/components/Blog';
 import IslamicDate from '@/components/IslamicDate';
-import DonationSection from '@/components/DonationSection';
-import HajjExperienceShare from '@/components/HajjExperienceShare';
 import Footer from '@/components/Footer';
 
-const Index = () => {
+const BlogPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50">
       <Header />
@@ -19,17 +17,17 @@ const Index = () => {
           <div className="text-center mb-8">
             <div className="inline-flex items-center space-x-3 mb-4">
               <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center animate-pulse-glow">
-                <span className="text-2xl">🕋</span>
+                <span className="text-2xl">📝</span>
               </div>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
-                Hajj Community Hub
+                Hajj & Umrah Blog
               </h1>
               <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-emerald-600 rounded-full flex items-center justify-center animate-pulse-glow">
-                <span className="text-2xl">🤲</span>
+                <span className="text-2xl">✨</span>
               </div>
             </div>
             <p className="text-lg sm:text-xl text-emerald-100 max-w-2xl mx-auto leading-relaxed">
-              Share your sacred journey experiences • Connect with fellow pilgrims • Inspire others with your stories
+              Discover inspiring stories, spiritual insights, and practical guidance from fellow pilgrims
             </p>
           </div>
 
@@ -40,20 +38,10 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Blog Preview Section */}
-      <BlogPreview />
-
-      {/* Hajj Experience Sharing */}
-      <section className="py-12 bg-gradient-to-r from-emerald-50 to-blue-50">
+      {/* Main Blog Section */}
+      <section className="py-8 sm:py-12">
         <div className="container mx-auto px-4">
-          <HajjExperienceShare />
-        </div>
-      </section>
-
-      {/* Donation Section */}
-      <section className="py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <DonationSection />
+          <Blog />
         </div>
       </section>
 
@@ -62,4 +50,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default BlogPage;

@@ -1,113 +1,90 @@
-
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { MapPin, Phone, Mail, Menu, X, MessageCircle, Users } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Menu } from "lucide-react"
 
 const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const isMobile = useIsMobile();
-
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-
   return (
-    <header className="bg-white/95 backdrop-blur-md shadow-xl sticky top-0 z-50 border-b border-emerald-100">
-      {/* Top Bar */}
-      <div className="bg-gradient-islamic text-white py-2 hidden sm:block">
-        <div className="container mx-auto px-4 flex justify-between items-center text-sm">
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2 animate-fade-in">
-              <Phone className="w-4 h-4 animate-sparkle" />
-              <span>+1 (555) HAJJ-HELP</span>
-            </div>
-            <div className="flex items-center space-x-2 animate-fade-in">
-              <Mail className="w-4 h-4 animate-sparkle" />
-              <span>support@hajjcommunity.com</span>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2 animate-fade-in">
-            <MapPin className="w-4 h-4 animate-sparkle" />
-            <span>Serving Muslims Worldwide 🌍</span>
-          </div>
-        </div>
-      </div>
+    <header className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-4 shadow-md sticky top-0 z-50">
+      <div className="container mx-auto px-4 flex items-center justify-between">
+        <Link to="/" className="text-2xl font-bold">
+          Hajj Community
+        </Link>
 
-      {/* Main Header */}
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center space-x-3 hover-lift cursor-pointer">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-islamic rounded-2xl flex items-center justify-center shadow-lg animate-pulse-glow">
-              <span className="text-white font-bold text-xl sm:text-2xl">🕋</span>
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-islamic bg-clip-text text-transparent">
-                Hajj Community
-              </h1>
-              <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">
-                ✨ Your Sacred Journey Companion
-              </p>
-            </div>
-          </div>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-8">
-            <a href="/" className="flex items-center space-x-2 text-gray-700 hover:text-emerald-600 font-medium transition-all hover-lift">
-              <MessageCircle className="w-4 h-4" />
-              <span>Live Chat</span>
-            </a>
-            <a href="/community" className="flex items-center space-x-2 text-gray-700 hover:text-emerald-600 font-medium transition-all hover-lift">
-              <Users className="w-4 h-4" />
-              <span>Community</span>
-            </a>
-            <a href="/agents" className="text-gray-700 hover:text-emerald-600 font-medium transition-all hover-lift">Agents</a>
-            <a href="/support" className="text-gray-700 hover:text-emerald-600 font-medium transition-all hover-lift">Support</a>
-          </nav>
-
-          {/* Desktop Auth Buttons */}
-          <div className="hidden lg:flex items-center space-x-3">
-            <Button variant="outline" className="border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50 transition-all hover-lift">
-              <a href="/auth">Sign In</a>
-            </Button>
-            <Button className="bg-gradient-islamic hover:opacity-90 text-white shadow-lg hover:shadow-xl transition-all hover-lift">
-              <a href="/auth">Join Community ✨</a>
-            </Button>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={toggleMenu}
-            className="lg:hidden p-3 text-gray-700 hover:text-emerald-600 transition-colors hover:bg-emerald-50 rounded-xl"
+        {/* Navigation Links (Desktop) */}
+        <nav className="hidden md:flex items-center space-x-8">
+          <Link 
+            to="/" 
+            className="text-white hover:text-emerald-200 transition-colors font-medium"
           >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
+            Home
+          </Link>
+          <Link 
+            to="/blog" 
+            className="text-white hover:text-emerald-200 transition-colors font-medium"
+          >
+            Blog
+          </Link>
+          <Link 
+            to="/community" 
+            className="text-white hover:text-emerald-200 transition-colors font-medium"
+          >
+            Community
+          </Link>
+          <Link 
+            to="/agents" 
+            className="text-white hover:text-emerald-200 transition-colors font-medium"
+          >
+            Agents
+          </Link>
+          <Link 
+            to="/support" 
+            className="text-white hover:text-emerald-200 transition-colors font-medium"
+          >
+            Support
+          </Link>
+          <Link 
+            to="/auth" 
+            className="bg-white text-emerald-700 px-4 py-2 rounded-full hover:bg-emerald-50 transition-colors font-medium"
+          >
+            Login
+          </Link>
+        </nav>
 
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="lg:hidden mt-4 pb-4 border-t border-gray-200 animate-slide-up">
-            <nav className="flex flex-col space-y-4 mt-4">
-              <a href="/" className="flex items-center space-x-2 text-gray-700 hover:text-emerald-600 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-emerald-50">
-                <MessageCircle className="w-4 h-4" />
-                <span>Live Chat</span>
-              </a>
-              <a href="/community" className="flex items-center space-x-2 text-gray-700 hover:text-emerald-600 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-emerald-50">
-                <Users className="w-4 h-4" />
-                <span>Community</span>
-              </a>
-              <a href="/agents" className="text-gray-700 hover:text-emerald-600 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-emerald-50">Agents</a>
-              <a href="/support" className="text-gray-700 hover:text-emerald-600 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-emerald-50">Support</a>
-              <div className="flex flex-col space-y-3 mt-4 pt-4 border-t border-gray-200">
-                <Button variant="outline" className="border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50 w-full transition-all">
-                  <a href="/auth">Sign In</a>
-                </Button>
-                <Button className="bg-gradient-islamic hover:opacity-90 text-white w-full shadow-lg transition-all">
-                  <a href="/auth">Join Community ✨</a>
-                </Button>
-              </div>
-            </nav>
-          </div>
-        )}
+        {/* Mobile Menu */}
+        <Sheet>
+          <SheetTrigger className="md:hidden">
+            <Menu className="h-6 w-6" />
+          </SheetTrigger>
+          <SheetContent side="left" className="sm:w-64">
+            <SheetHeader>
+              <SheetTitle>Hajj Community</SheetTitle>
+              <SheetDescription>
+                Explore and connect with our community.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="grid gap-4 py-4">
+              <Link to="/" className="text-gray-900 hover:text-emerald-700 transition-colors font-medium block py-2">
+                Home
+              </Link>
+              <Link to="/blog" className="text-gray-900 hover:text-emerald-700 transition-colors font-medium block py-2">
+                Blog
+              </Link>
+              <Link to="/community" className="text-gray-900 hover:text-emerald-700 transition-colors font-medium block py-2">
+                Community
+              </Link>
+              <Link to="/agents" className="text-gray-900 hover:text-emerald-700 transition-colors font-medium block py-2">
+                Agents
+              </Link>
+              <Link to="/support" className="text-gray-900 hover:text-emerald-700 transition-colors font-medium block py-2">
+                Support
+              </Link>
+              <Link to="/auth" className="bg-emerald-600 text-white px-4 py-2 rounded-full hover:bg-emerald-700 transition-colors font-medium block text-center">
+                Login
+              </Link>
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </header>
   );

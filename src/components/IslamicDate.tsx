@@ -21,7 +21,8 @@ const IslamicDate = () => {
       // More accurate Islamic date calculation
       // This is a simplified calculation - for production, use a proper Islamic calendar library
       const gregorianYear = now.getFullYear();
-      const dayOfYear = Math.floor((now - new Date(gregorianYear, 0, 0)) / (1000 * 60 * 60 * 24));
+      const startOfYear = new Date(gregorianYear, 0, 1);
+      const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
       
       // Approximate Islamic year (Hijri calendar started in 622 CE)
       const islamicYear = Math.floor(((gregorianYear - 622) * 365.25) / 354.36) + 1;
